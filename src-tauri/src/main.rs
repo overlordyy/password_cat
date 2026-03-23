@@ -22,7 +22,6 @@ mod crypto {
         aead::{Aead, KeyInit, OsRng as AesRng},
         Aes256Gcm, Nonce,
     };
-    use sha2::{Sha256, Digest};
     use base64::{Engine as _, engine::general_purpose};
     use rand::Rng;
 
