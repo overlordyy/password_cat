@@ -22,7 +22,8 @@
     "windows": {
       "nsis": {
         "installMode": "currentUser"
-      }
+      },
+      "wix": null
     }
   },
   "productName": "PasswordCat",
