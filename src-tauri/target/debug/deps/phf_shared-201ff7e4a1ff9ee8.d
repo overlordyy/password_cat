@@ -1,7 +1,0 @@
-/Users/tomyuyuan/.qclaw/workspace/passwordcat/src-tauri/target/debug/deps/phf_shared-201ff7e4a1ff9ee8.d: /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_shared-0.11.3/src/lib.rs
-
-/Users/tomyuyuan/.qclaw/workspace/passwordcat/src-tauri/target/debug/deps/libphf_shared-201ff7e4a1ff9ee8.rlib: /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_shared-0.11.3/src/lib.rs
-
-/Users/tomyuyuan/.qclaw/workspace/passwordcat/src-tauri/target/debug/deps/libphf_shared-201ff7e4a1ff9ee8.rmeta: /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_shared-0.11.3/src/lib.rs
-
-/Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_shared-0.11.3/src/lib.rs:
