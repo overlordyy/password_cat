@@ -246,8 +246,8 @@ const handleCommand = (command: string, entry: any) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-      .then(() => {
-        vaultStore.deleteEntry(entry.id)
+      .then(async () => {
+        await vaultStore.deleteEntry(entry.id)
         ElMessage.success('已删除')
       })
       .catch(() => {})

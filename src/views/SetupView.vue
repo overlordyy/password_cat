@@ -73,6 +73,7 @@ const form = ref({
 })
 
 const loading = ref(false)
+const formRef = ref()
 
 const rules = {
   password: [
@@ -121,11 +122,9 @@ const strengthText = computed(() => {
 })
 
 const handleSetup = async () => {
-  const formRef = ref()
-  await formRef.value?.validate()
-  
   loading.value = true
   try {
+    await formRef.value?.validate()
     await vaultStore.createVault(form.value.password)
     ElMessage.success('密码库创建成功！')
     router.push('/vault')
