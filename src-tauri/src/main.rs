@@ -1,6 +1,6 @@
 use log::{info, error};
 use simplelog::{CombinedLogger, WriteLogger, TermLogger, Config, LevelFilter, TerminalMode, ColorChoice};
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::path::PathBuf;
 
 fn get_log_path() -> PathBuf {
