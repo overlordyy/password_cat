@@ -7,7 +7,7 @@
       </div>
       <div class="navbar-right">
         <el-button type="danger" size="small" @click="handleLogout">
-          <template #icon><LogOut /></template>
+          <template #icon><Logout /></template>
           退出登录
         </el-button>
       </div>
@@ -49,8 +49,8 @@
         <div v-for="entry in filteredEntries" :key="entry.id" class="password-card">
           <div class="card-header">
             <div class="card-title">
-              <span class="platform-icon">{{ getPlatformIcon(entry.platform) }}</span>
-              <span class="platform-name">{{ entry.platform }}</span>
+              <span class="platform-icon">{{ getPlatformIcon(entry.title) }}</span>
+              <span class="platform-name">{{ entry.title }}</span>
             </div>
             <el-dropdown @command="handleCommand($event, entry)">
               <el-button type="text" size="small">
@@ -70,11 +70,11 @@
             <div class="info-row">
               <div class="info-label">账户</div>
               <div class="info-value">
-                <span class="account-text">{{ entry.account }}</span>
+                <span class="account-text">{{ entry.username }}</span>
                 <el-button 
                   type="text" 
                   size="small" 
-                  @click="copyToClipboard(entry.account, '账户')"
+                  @click="copyToClipboard(entry.username, '账户')"
                   class="copy-btn"
                 >
                   <template #icon><DocumentCopy /></template>
@@ -96,8 +96,8 @@
                   class="reveal-btn"
                 >
                   <template #icon>
-                    <Eye v-if="!revealedIds.has(entry.id)" />
-                    <EyeSlash v-else />
+                    <View v-if="!revealedIds.has(entry.id)" />
+                    <Hide v-else />
                   </template>
                 </el-button>
                 <el-button 
@@ -154,7 +154,7 @@ import { ref, computed } from 'vue'
 import { useVaultStore } from '@/stores/vault'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Plus, Search, MoreFilled, DocumentCopy, Eye, EyeSlash, LogOut } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, DocumentCopy, View, Hide, Logout } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
@@ -183,8 +183,8 @@ const filteredEntries = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return entries.value.filter(
     entry =>
-      entry.platform.toLowerCase().includes(query) ||
-      entry.account.toLowerCase().includes(query)
+      entry.title.toLowerCase().includes(query) ||
+      entry.username.toLowerCase().includes(query)
   )
 })
 
@@ -226,8 +226,8 @@ const handleAddEntry = async () => {
 
   try {
     await vaultStore.addEntry({
-      platform: newEntry.value.platform,
-      account: newEntry.value.account,
+      title: newEntry.value.platform,
+      username: newEntry.value.account,
       password: newEntry.value.password,
       notes: newEntry.value.notes,
     })
@@ -255,7 +255,7 @@ const handleCommand = (command: string, entry: any) => {
 }
 
 const handleLogout = () => {
-  vaultStore.logout()
+  vaultStore.lockVault()
   router.push('/unlock')
 }
 

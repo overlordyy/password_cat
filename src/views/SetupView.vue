@@ -126,7 +126,7 @@ const handleSetup = async () => {
   
   loading.value = true
   try {
-    await vaultStore.setupVault(form.value.password)
+    await vaultStore.createVault(form.value.password)
     ElMessage.success('密码库创建成功！')
     router.push('/vault')
   } catch (error) {
