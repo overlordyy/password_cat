@@ -7,7 +7,7 @@
       </div>
       <div class="navbar-right">
         <el-button type="danger" size="small" @click="handleLogout">
-          <template #icon><Logout /></template>
+          <template #icon><SwitchButton /></template>
           退出登录
         </el-button>
       </div>
@@ -153,8 +153,8 @@
 import { ref, computed } from 'vue'
 import { useVaultStore } from '@/stores/vault'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Plus, MoreFilled, DocumentCopy, View, Hide, Logout } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, MoreFilled, DocumentCopy, View, Hide, SwitchButton } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
@@ -241,7 +241,7 @@ const handleAddEntry = async () => {
 
 const handleCommand = (command: string, entry: any) => {
   if (command === 'delete') {
-    ElMessage.confirm('确定删除此密码吗？', '警告', {
+    ElMessageBox.confirm('确定删除此密码吗？', '警告', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
