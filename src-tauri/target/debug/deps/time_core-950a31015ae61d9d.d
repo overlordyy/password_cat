@@ -1,0 +1,10 @@
+/Users/tomyuyuan/.qclaw/workspace/passwordcat/src-tauri/target/debug/deps/time_core-950a31015ae61d9d.d: /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/lib.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/convert.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/hint.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/util.rs
+
+/Users/tomyuyuan/.qclaw/workspace/passwordcat/src-tauri/target/debug/deps/libtime_core-950a31015ae61d9d.rlib: /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/lib.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/convert.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/hint.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/util.rs
+
+/Users/tomyuyuan/.qclaw/workspace/passwordcat/src-tauri/target/debug/deps/libtime_core-950a31015ae61d9d.rmeta: /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/lib.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/convert.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/hint.rs /Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/util.rs
+
+/Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/lib.rs:
+/Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/convert.rs:
+/Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/hint.rs:
+/Users/tomyuyuan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-core-0.1.8/src/util.rs:
