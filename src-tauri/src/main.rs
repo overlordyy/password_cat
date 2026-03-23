@@ -53,7 +53,6 @@ pub fn run() {
             init_logging();
             Ok(())
         })
-        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             crypto::derive_key,
             crypto::encrypt_data,
