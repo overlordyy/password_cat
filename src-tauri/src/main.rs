@@ -3,21 +3,33 @@ use simplelog::{CombinedLogger, WriteLogger, TermLogger, Config, LevelFilter, Te
 use std::fs::{File, OpenOptions};
 use std::path::PathBuf;
 
-fn get_log_path(app_handle: &tauri::AppHandle) -> PathBuf {
-    let mut path = app_handle.path().app_log_dir().unwrap_or_else(|_| PathBuf::from("."));
+fn get_log_path() -> PathBuf {
+    let path = if cfg!(target_os = "windows") {
+        // Windows: C:\passwordcat\
+        PathBuf::from("C:\\passwordcat")
+    } else if cfg!(target_os = "macos") {
+        // macOS: /var/log/com.passwordcat.app/
+        PathBuf::from("/var/log/com.passwordcat.app")
+    } else if cfg!(target_os = "linux") {
+        // Linux: /var/log/com.passwordcat.app/
+        PathBuf::from("/var/log/com.passwordcat.app")
+    } else {
+        PathBuf::from(".")
+    };
+    
     std::fs::create_dir_all(&path).ok();
-    path.push("passwordcat.log");
     path
 }
 
-fn init_logging(app_handle: &tauri::AppHandle) {
-    let log_path = get_log_path(app_handle);
+fn init_logging() {
+    let log_dir = get_log_path();
+    let log_file_path = log_dir.join("passwordcat.log");
     
     let log_file = OpenOptions::new()
         .create(true)
         .write(true)
         .append(true)
-        .open(&log_path)
+        .open(&log_file_path)
         .ok();
     
     if let Some(file) = log_file {
@@ -27,7 +39,7 @@ fn init_logging(app_handle: &tauri::AppHandle) {
         ]).ok();
     }
     
-    info!("PasswordCat started! Log file: {:?}", log_path);
+    info!("PasswordCat started! Log file: {:?}", log_file_path);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -37,8 +49,8 @@ pub fn run() {
     }));
 
     tauri::Builder::default()
-        .setup(|app| {
-            init_logging(&app.handle());
+        .setup(|_app| {
+            init_logging();
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
@@ -195,18 +207,29 @@ mod storage {
     use log::{info, error};
     use std::fs;
     use std::path::PathBuf;
-    use tauri::Manager;
 
-    fn get_vault_path(app_handle: &tauri::AppHandle) -> PathBuf {
-        let mut path = app_handle.path().app_data_dir().unwrap_or_else(|_| PathBuf::from("."));
+    fn get_vault_path() -> PathBuf {
+        let path = if cfg!(target_os = "windows") {
+            // Windows: C:\passwordcat\
+            PathBuf::from("C:\\passwordcat")
+        } else if cfg!(target_os = "macos") {
+            // macOS: /var/log/com.passwordcat.app/
+            PathBuf::from("/var/log/com.passwordcat.app")
+        } else if cfg!(target_os = "linux") {
+            // Linux: /var/log/com.passwordcat.app/
+            PathBuf::from("/var/log/com.passwordcat.app")
+        } else {
+            PathBuf::from(".")
+        };
+        
         fs::create_dir_all(&path).ok();
-        path.push("vault.enc");
         path
     }
 
     #[tauri::command]
-    pub fn save_vault(app_handle: tauri::AppHandle, data: &str) -> Result<(), String> {
-        let path = get_vault_path(&app_handle);
+    pub fn save_vault(data: &str) -> Result<(), String> {
+        let mut path = get_vault_path();
+        path.push("vault.enc");
         info!("Saving vault to: {:?}", path);
         
         fs::write(&path, data).map_err(|e| {
@@ -219,8 +242,9 @@ mod storage {
     }
 
     #[tauri::command]
-    pub fn load_vault(app_handle: tauri::AppHandle) -> Result<String, String> {
-        let path = get_vault_path(&app_handle);
+    pub fn load_vault() -> Result<String, String> {
+        let mut path = get_vault_path();
+        path.push("vault.enc");
         info!("Loading vault from: {:?}", path);
         
         if !path.exists() {
@@ -235,18 +259,19 @@ mod storage {
     }
 
     #[tauri::command]
-    pub fn vault_exists(app_handle: tauri::AppHandle) -> bool {
-        let path = get_vault_path(&app_handle);
+    pub fn vault_exists() -> bool {
+        let mut path = get_vault_path();
+        path.push("vault.enc");
         let exists = path.exists();
         info!("vault_exists: {} -> {}", path.display(), exists);
         exists
     }
 
     #[tauri::command]
-    pub fn get_log_path(app_handle: tauri::AppHandle) -> String {
-        let mut path = app_handle.path().app_log_dir().unwrap_or_else(|_| PathBuf::from("."));
-        path.push("passwordcat.log");
-        let path_str = path.display().to_string();
+    pub fn get_log_path() -> String {
+        let path = super::get_log_path();
+        let log_file = path.join("passwordcat.log");
+        let path_str = log_file.display().to_string();
         info!("Log path: {}", path_str);
         path_str
     }
