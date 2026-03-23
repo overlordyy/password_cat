@@ -1,5 +1,46 @@
-fn main() {
+use log::{info, error};
+use simplelog::{CombinedLogger, WriteLogger, TermLogger, Config, LevelFilter, TerminalMode, ColorChoice};
+use std::fs::{File, OpenOptions};
+use std::path::PathBuf;
+
+fn get_log_path(app_handle: &tauri::AppHandle) -> PathBuf {
+    let mut path = app_handle.path().app_log_dir().unwrap_or_else(|_| PathBuf::from("."));
+    std::fs::create_dir_all(&path).ok();
+    path.push("passwordcat.log");
+    path
+}
+
+fn init_logging(app_handle: &tauri::AppHandle) {
+    let log_path = get_log_path(app_handle);
+    
+    let log_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(true)
+        .open(&log_path)
+        .ok();
+    
+    if let Some(file) = log_file {
+        CombinedLogger::init(vec![
+            TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
+            WriteLogger::new(LevelFilter::Info, Config::default(), file),
+        ]).ok();
+    }
+    
+    info!("PasswordCat started! Log file: {:?}", log_path);
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    std::panic::set_hook(Box::new(|panic_info| {
+        error!("PANIC: {}", panic_info);
+    }));
+
     tauri::Builder::default()
+        .setup(|app| {
+            init_logging(&app.handle());
+            Ok(())
+        })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             crypto::derive_key,
@@ -9,12 +50,14 @@ fn main() {
             storage::save_vault,
             storage::load_vault,
             storage::vault_exists,
+            storage::get_log_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 mod crypto {
+    use log::{info, error};
     use argon2::{Argon2, PasswordHasher};
     use argon2::password_hash::SaltString;
     use argon2::password_hash::rand_core::OsRng;
@@ -27,48 +70,81 @@ mod crypto {
 
     #[tauri::command]
     pub fn derive_key(password: &str, salt: Option<&str>) -> Result<(String, String), String> {
+        info!("derive_key called");
+        
         let salt = match salt {
-            Some(s) => SaltString::from_b64(s).map_err(|e| e.to_string())?,
+            Some(s) => SaltString::from_b64(s).map_err(|e| {
+                error!("Failed to parse salt: {}", e);
+                e.to_string()
+            })?,
             None => SaltString::generate(&mut OsRng),
         };
 
         let argon2 = Argon2::default();
         let password_hash = argon2
             .hash_password(password.as_bytes(), &salt)
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| {
+                error!("Failed to hash password: {}", e);
+                e.to_string()
+            })?;
 
         let hash = password_hash.hash.ok_or("Failed to get hash")?;
         let key = general_purpose::STANDARD.encode(hash.as_bytes());
-
+        
+        info!("Key derived successfully");
         Ok((key, salt.to_string()))
     }
 
     #[tauri::command]
     pub fn encrypt_data(data: &str, key: &str) -> Result<String, String> {
-        let key_bytes = general_purpose::STANDARD.decode(key).map_err(|e| e.to_string())?;
-        let cipher = Aes256Gcm::new_from_slice(&key_bytes).map_err(|e| e.to_string())?;
+        info!("encrypt_data called");
+        
+        let key_bytes = general_purpose::STANDARD.decode(key).map_err(|e| {
+            error!("Failed to decode key: {}", e);
+            e.to_string()
+        })?;
+        let cipher = Aes256Gcm::new_from_slice(&key_bytes).map_err(|e| {
+            error!("Failed to create cipher: {}", e);
+            e.to_string()
+        })?;
 
         let nonce_bytes: [u8; 12] = AesRng.gen();
         let nonce = Nonce::from_slice(&nonce_bytes);
 
         let encrypted = cipher
             .encrypt(nonce, data.as_bytes())
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| {
+                error!("Encryption failed: {}", e);
+                e.to_string()
+            })?;
 
         let mut result = nonce_bytes.to_vec();
         result.extend(encrypted);
-
+        
+        info!("Data encrypted successfully");
         Ok(general_purpose::STANDARD.encode(result))
     }
 
     #[tauri::command]
     pub fn decrypt_data(encrypted_data: &str, key: &str) -> Result<String, String> {
-        let key_bytes = general_purpose::STANDARD.decode(key).map_err(|e| e.to_string())?;
-        let cipher = Aes256Gcm::new_from_slice(&key_bytes).map_err(|e| e.to_string())?;
+        info!("decrypt_data called");
+        
+        let key_bytes = general_purpose::STANDARD.decode(key).map_err(|e| {
+            error!("Failed to decode key: {}", e);
+            e.to_string()
+        })?;
+        let cipher = Aes256Gcm::new_from_slice(&key_bytes).map_err(|e| {
+            error!("Failed to create cipher: {}", e);
+            e.to_string()
+        })?;
 
-        let data = general_purpose::STANDARD.decode(encrypted_data).map_err(|e| e.to_string())?;
+        let data = general_purpose::STANDARD.decode(encrypted_data).map_err(|e| {
+            error!("Failed to decode encrypted data: {}", e);
+            e.to_string()
+        })?;
 
         if data.len() < 12 {
+            error!("Invalid encrypted data: too short");
             return Err("Invalid encrypted data".to_string());
         }
 
@@ -77,13 +153,22 @@ mod crypto {
 
         let decrypted = cipher
             .decrypt(nonce, ciphertext)
-            .map_err(|e| e.to_string())?;
-
-        String::from_utf8(decrypted).map_err(|e| e.to_string())
+            .map_err(|e| {
+                error!("Decryption failed (wrong password?): {}", e);
+                e.to_string()
+            })?;
+        
+        info!("Data decrypted successfully");
+        String::from_utf8(decrypted).map_err(|e| {
+            error!("Failed to convert decrypted data to UTF-8: {}", e);
+            e.to_string()
+        })
     }
 
     #[tauri::command]
     pub fn generate_password(length: usize, use_uppercase: bool, use_numbers: bool, use_symbols: bool) -> String {
+        info!("generate_password called: length={}", length);
+        
         let mut charset: Vec<char> = ('a'..='z').collect();
 
         if use_uppercase {
@@ -97,19 +182,24 @@ mod crypto {
         }
 
         let mut rng = rand::thread_rng();
-        (0..length)
+        let password: String = (0..length)
             .map(|_| charset[rng.gen_range(0..charset.len())])
-            .collect()
+            .collect();
+        
+        info!("Password generated");
+        password
     }
 }
 
 mod storage {
+    use log::{info, error};
     use std::fs;
     use std::path::PathBuf;
     use tauri::Manager;
 
     fn get_vault_path(app_handle: &tauri::AppHandle) -> PathBuf {
         let mut path = app_handle.path().app_data_dir().unwrap_or_else(|_| PathBuf::from("."));
+        fs::create_dir_all(&path).ok();
         path.push("vault.enc");
         path
     }
@@ -117,19 +207,51 @@ mod storage {
     #[tauri::command]
     pub fn save_vault(app_handle: tauri::AppHandle, data: &str) -> Result<(), String> {
         let path = get_vault_path(&app_handle);
-        fs::write(&path, data).map_err(|e| e.to_string())?;
+        info!("Saving vault to: {:?}", path);
+        
+        fs::write(&path, data).map_err(|e| {
+            error!("Failed to save vault: {}", e);
+            e.to_string()
+        })?;
+        
+        info!("Vault saved successfully");
         Ok(())
     }
 
     #[tauri::command]
     pub fn load_vault(app_handle: tauri::AppHandle) -> Result<String, String> {
         let path = get_vault_path(&app_handle);
-        fs::read_to_string(&path).map_err(|e| e.to_string())
+        info!("Loading vault from: {:?}", path);
+        
+        if !path.exists() {
+            info!("Vault file does not exist");
+            return Err("Vault does not exist".to_string());
+        }
+        
+        fs::read_to_string(&path).map_err(|e| {
+            error!("Failed to load vault: {}", e);
+            e.to_string()
+        })
     }
 
     #[tauri::command]
     pub fn vault_exists(app_handle: tauri::AppHandle) -> bool {
         let path = get_vault_path(&app_handle);
-        path.exists()
+        let exists = path.exists();
+        info!("vault_exists: {} -> {}", path.display(), exists);
+        exists
     }
+
+    #[tauri::command]
+    pub fn get_log_path(app_handle: tauri::AppHandle) -> String {
+        let mut path = app_handle.path().app_log_dir().unwrap_or_else(|_| PathBuf::from("."));
+        path.push("passwordcat.log");
+        let path_str = path.display().to_string();
+        info!("Log path: {}", path_str);
+        path_str
+    }
+}
+
+fn main() {
+    run();
 }
