@@ -273,7 +273,7 @@ mod storage {
 
     #[tauri::command]
     pub fn get_log_path() -> String {
-        let path = super::get_log_path();
+        let path = super::get_log_dir();
         let log_file = path.join("passwordcat.log");
         let path_str = log_file.display().to_string();
         info!("Log path: {}", path_str);
