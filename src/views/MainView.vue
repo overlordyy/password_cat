@@ -1,397 +1,516 @@
 <template>
   <div class="main-container">
-    <el-container>
-      <!-- 侧边栏 -->
-      <el-aside width="260px" class="sidebar">
-        <div class="sidebar-header">
-          <el-icon size="32" color="#409EFF"><Lock /></el-icon>
-          <span class="app-name">PasswordCat</span>
-        </div>
+    <!-- 顶部导航栏 -->
+    <div class="navbar">
+      <div class="navbar-left">
+        <h1 class="navbar-title">🔐 PasswordCat</h1>
+      </div>
+      <div class="navbar-right">
+        <el-button type="danger" size="small" @click="handleLogout">
+          <template #icon><LogOut /></template>
+          退出登录
+        </el-button>
+      </div>
+    </div>
 
-        <el-menu
-          :default-active="activeMenu"
-          class="sidebar-menu"
-          @select="handleMenuSelect"
-        >
-          <el-menu-item index="passwords">
-            <el-icon><Key /></el-icon>
-            <span>密码库</span>
-            <el-tag v-if="entryCount > 0" size="small" type="info" class="count-tag">
-              {{ entryCount }}
-            </el-tag>
-          </el-menu-item>
-          <el-menu-item index="generator">
-            <el-icon><Refresh /></el-icon>
-            <span>密码生成器</span>
-          </el-menu-item>
-          <el-menu-item index="settings">
-            <el-icon><Setting /></el-icon>
-            <span>设置</span>
-          </el-menu-item>
-        </el-menu>
+    <!-- 主容器 -->
+    <div class="content-wrapper">
+      <!-- 左侧操作栏 -->
+      <div class="sidebar">
+        <el-button type="primary" size="large" class="add-button" @click="showAddDialog = true">
+          <template #icon><Plus /></template>
+          添加密码
+        </el-button>
+        
+        <el-input
+          v-model="searchQuery"
+          placeholder="搜索密码..."
+          clearable
+          size="large"
+          class="search-input"
+          prefix-icon="Search"
+        />
 
-        <div class="sidebar-footer">
-          <el-button type="danger" plain @click="handleLock">
-            <el-icon><Lock /></el-icon>
-            锁定
-          </el-button>
-        </div>
-      </el-aside>
-
-      <!-- 主内容区 -->
-      <el-main class="main-content">
-        <!-- 密码列表 -->
-        <div v-if="activeMenu === 'passwords'" class="passwords-view">
-          <div class="toolbar">
-            <el-input
-              v-model="searchQuery"
-              placeholder="搜索密码..."
-              clearable
-              style="width: 300px"
-            >
-              <template #prefix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            <el-button type="primary" @click="showAddDialog = true">
-              <el-icon><Plus /></el-icon>
-              添加密码
-            </el-button>
-          </div>
-
-          <el-empty v-if="filteredEntries.length === 0" description="暂无密码" />
-          
-          <div v-else class="password-list">
-            <el-card
-              v-for="entry in filteredEntries"
-              :key="entry.id"
-              class="password-card"
-              shadow="hover"
-            >
-              <div class="password-card-header">
-                <div class="password-title">
-                  <el-icon><Document /></el-icon>
-                  <span>{{ entry.title }}</span>
-                </div>
-                <div class="password-actions">
-                  <el-button link @click="copyPassword(entry.password)">
-                    <el-icon><CopyDocument /></el-icon>
-                  </el-button>
-                  <el-button link @click="editEntry(entry)">
-                    <el-icon><Edit /></el-icon>
-                  </el-button>
-                  <el-button link type="danger" @click="confirmDelete(entry)">
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </div>
-              </div>
-              <div class="password-info">
-                <p><strong>用户名:</strong> {{ entry.username }}</p>
-                <p v-if="entry.url"><strong>网址:</strong> {{ entry.url }}</p>
-                <p v-if="entry.notes" class="notes">{{ entry.notes }}</p>
-              </div>
-            </el-card>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-number">{{ entries.length }}</div>
+            <div class="stat-label">密码总数</div>
           </div>
         </div>
+      </div>
 
-        <!-- 密码生成器 -->
-        <div v-else-if="activeMenu === 'generator'" class="generator-view">
-          <PasswordGenerator />
+      <!-- 右侧密码列表 -->
+      <div class="password-list">
+        <div v-if="filteredEntries.length === 0" class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>暂无密码记录</p>
         </div>
 
-        <!-- 设置 -->
-        <div v-else-if="activeMenu === 'settings'" class="settings-view">
-          <h2>设置</h2>
-          <el-form label-width="120px">
-            <el-form-item label="数据文件位置">
-              <el-input v-model="vaultPath" readonly>
-                <template #append>
-                  <el-button @click="openVaultLocation">打开位置</el-button>
-                </template>
-              </el-input>
-              <p class="form-tip">您可以复制此文件到其他设备进行迁移</p>
-            </el-form-item>
-          </el-form>
-        </div>
-      </el-main>
-    </el-container>
-
-    <!-- 添加/编辑密码对话框 -->
-    <el-dialog
-      v-model="showAddDialog"
-      :title="editingEntry ? '编辑密码' : '添加密码'"
-      width="500px"
-    >
-      <el-form :model="entryForm" label-width="80px">
-        <el-form-item label="标题">
-          <el-input v-model="entryForm.title" placeholder="例如：GitHub" />
-        </el-form-item>
-        <el-form-item label="用户名">
-          <el-input v-model="entryForm.username" placeholder="用户名/邮箱" />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input
-            v-model="entryForm.password"
-            type="password"
-            show-password
-            placeholder="密码"
-          >
-            <template #append>
-              <el-button @click="generateForEntry">
-                <el-icon><Refresh /></el-icon>
+        <div v-for="entry in filteredEntries" :key="entry.id" class="password-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="platform-icon">{{ getPlatformIcon(entry.platform) }}</span>
+              <span class="platform-name">{{ entry.platform }}</span>
+            </div>
+            <el-dropdown @command="handleCommand($event, entry)">
+              <el-button type="text" size="small">
+                <template #icon><MoreFilled /></template>
               </el-button>
-            </template>
-          </el-input>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+
+          <div class="card-content">
+            <!-- 账户信息 -->
+            <div class="info-row">
+              <div class="info-label">账户</div>
+              <div class="info-value">
+                <span class="account-text">{{ entry.account }}</span>
+                <el-button 
+                  type="text" 
+                  size="small" 
+                  @click="copyToClipboard(entry.account, '账户')"
+                  class="copy-btn"
+                >
+                  <template #icon><DocumentCopy /></template>
+                </el-button>
+              </div>
+            </div>
+
+            <!-- 密码信息 -->
+            <div class="info-row">
+              <div class="info-label">密码</div>
+              <div class="info-value">
+                <span class="password-text" :class="{ revealed: revealedIds.has(entry.id) }">
+                  {{ revealedIds.has(entry.id) ? entry.password : '••••••••' }}
+                </span>
+                <el-button 
+                  type="text" 
+                  size="small" 
+                  @click="toggleReveal(entry.id)"
+                  class="reveal-btn"
+                >
+                  <template #icon>
+                    <Eye v-if="!revealedIds.has(entry.id)" />
+                    <EyeSlash v-else />
+                  </template>
+                </el-button>
+                <el-button 
+                  type="text" 
+                  size="small" 
+                  @click="copyToClipboard(entry.password, '密码')"
+                  class="copy-btn"
+                >
+                  <template #icon><DocumentCopy /></template>
+                </el-button>
+              </div>
+            </div>
+
+            <!-- 备注 -->
+            <div v-if="entry.notes" class="info-row">
+              <div class="info-label">备注</div>
+              <div class="info-value">{{ entry.notes }}</div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <span class="create-time">{{ formatDate(entry.createdAt) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加/编辑对话框 -->
+    <el-dialog v-model="showAddDialog" title="添加密码" width="500px" @close="resetForm">
+      <el-form :model="newEntry" :rules="formRules" ref="formRef" label-width="80px">
+        <el-form-item label="平台" prop="platform">
+          <el-input v-model="newEntry.platform" placeholder="如: GitHub, Gmail" />
         </el-form-item>
-        <el-form-item label="网址">
-          <el-input v-model="entryForm.url" placeholder="https://..." />
+        <el-form-item label="账户" prop="account">
+          <el-input v-model="newEntry.account" placeholder="邮箱或用户名" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="newEntry.password" type="password" show-password />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input
-            v-model="entryForm.notes"
-            type="textarea"
-            rows="3"
-            placeholder="其他信息..."
-          />
+          <el-input v-model="newEntry.notes" type="textarea" rows="3" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showAddDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveEntry">保存</el-button>
+        <el-button type="primary" @click="handleAddEntry">确定</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useVaultStore } from '@/stores/vault'
 import { useRouter } from 'vue-router'
-import { useVaultStore, type PasswordEntry } from '@/stores/vault'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import PasswordGenerator from '@/components/PasswordGenerator.vue'
+import { ElMessage } from 'element-plus'
+import { Plus, Search, MoreFilled, DocumentCopy, Eye, EyeSlash, LogOut } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 
-// 状态
-const activeMenu = ref('passwords')
 const searchQuery = ref('')
 const showAddDialog = ref(false)
-const editingEntry = ref<PasswordEntry | null>(null)
-const vaultPath = ref('')
+const revealedIds = ref(new Set<string>())
 
-// 表单
-const entryForm = ref({
-  title: '',
-  username: '',
+const newEntry = ref({
+  platform: '',
+  account: '',
   password: '',
-  url: '',
   notes: '',
 })
 
-// 计算属性
-const entryCount = computed(() => vaultStore.entryCount)
-const filteredEntries = computed(() => vaultStore.searchEntries(searchQuery.value))
-
-// 方法
-const handleMenuSelect = (index: string) => {
-  activeMenu.value = index
+const formRules = {
+  platform: [{ required: true, message: '请输入平台名称', trigger: 'blur' }],
+  account: [{ required: true, message: '请输入账户', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
-const handleLock = () => {
-  vaultStore.lockVault()
-  router.push('/unlock')
+const entries = computed(() => vaultStore.entries)
+
+const filteredEntries = computed(() => {
+  if (!searchQuery.value) return entries.value
+  const query = searchQuery.value.toLowerCase()
+  return entries.value.filter(
+    entry =>
+      entry.platform.toLowerCase().includes(query) ||
+      entry.account.toLowerCase().includes(query)
+  )
+})
+
+const getPlatformIcon = (platform: string) => {
+  const icons: Record<string, string> = {
+    github: '🐙',
+    gmail: '📧',
+    twitter: '𝕏',
+    facebook: '👍',
+    instagram: '📷',
+    linkedin: '💼',
+    default: '🔑',
+  }
+  return icons[platform.toLowerCase()] || icons.default
 }
 
-const copyPassword = async (password: string) => {
+const toggleReveal = (id: string) => {
+  if (revealedIds.value.has(id)) {
+    revealedIds.value.delete(id)
+  } else {
+    revealedIds.value.add(id)
+  }
+}
+
+const copyToClipboard = async (text: string, label: string) => {
   try {
-    await navigator.clipboard.writeText(password)
-    ElMessage.success('密码已复制')
+    await navigator.clipboard.writeText(text)
+    ElMessage.success(`${label}已复制到剪贴板`)
   } catch {
     ElMessage.error('复制失败')
   }
 }
 
-const editEntry = (entry: PasswordEntry) => {
-  editingEntry.value = entry
-  entryForm.value = {
-    title: entry.title,
-    username: entry.username,
-    password: entry.password,
-    url: entry.url || '',
-    notes: entry.notes || '',
-  }
-  showAddDialog.value = true
-}
-
-const confirmDelete = (entry: PasswordEntry) => {
-  ElMessageBox.confirm(
-    `确定要删除 "${entry.title}" 吗？`,
-    '确认删除',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    vaultStore.deleteEntry(entry.id)
-    ElMessage.success('已删除')
-  })
-}
-
-const saveEntry = async () => {
-  if (!entryForm.value.title || !entryForm.value.password) {
-    ElMessage.warning('请填写标题和密码')
+const handleAddEntry = async () => {
+  if (!newEntry.value.platform || !newEntry.value.account || !newEntry.value.password) {
+    ElMessage.error('请填写必填项')
     return
   }
 
   try {
-    if (editingEntry.value) {
-      await vaultStore.updateEntry(editingEntry.value.id, entryForm.value)
-      ElMessage.success('已更新')
-    } else {
-      await vaultStore.addEntry(entryForm.value)
-      ElMessage.success('已添加')
-    }
-    
+    await vaultStore.addEntry({
+      platform: newEntry.value.platform,
+      account: newEntry.value.account,
+      password: newEntry.value.password,
+      notes: newEntry.value.notes,
+    })
+    ElMessage.success('密码已添加')
     showAddDialog.value = false
     resetForm()
-  } catch (e: any) {
-    ElMessage.error(e.message || '保存失败')
+  } catch (error) {
+    ElMessage.error(`添加失败: ${error}`)
   }
 }
 
-const generateForEntry = async () => {
-  const password = await vaultStore.generatePassword({
-    length: 16,
-    useUppercase: true,
-    useNumbers: true,
-    useSymbols: true,
-  })
-  entryForm.value.password = password
+const handleCommand = (command: string, entry: any) => {
+  if (command === 'delete') {
+    ElMessage.confirm('确定删除此密码吗？', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(() => {
+        vaultStore.deleteEntry(entry.id)
+        ElMessage.success('已删除')
+      })
+      .catch(() => {})
+  }
+}
+
+const handleLogout = () => {
+  vaultStore.logout()
+  router.push('/unlock')
 }
 
 const resetForm = () => {
-  editingEntry.value = null
-  entryForm.value = {
-    title: '',
-    username: '',
+  newEntry.value = {
+    platform: '',
+    account: '',
     password: '',
-    url: '',
     notes: '',
   }
 }
 
-const openVaultLocation = () => {
-  // 打开文件位置
+const formatDate = (date: string | number) => {
+  return new Date(date).toLocaleDateString('zh-CN')
 }
-
-onMounted(() => {
-  // 加载 vault 路径
-})
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .main-container {
   height: 100vh;
-}
-
-.sidebar {
-  background: #fff;
-  border-right: 1px solid #e4e7ed;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.sidebar-header {
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid #e4e7ed;
-}
-
-.app-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.sidebar-menu {
-  flex: 1;
-  border-right: none;
-}
-
-.count-tag {
-  margin-left: auto;
-}
-
-.sidebar-footer {
-  padding: 20px;
-  border-top: 1px solid #e4e7ed;
-}
-
-.main-content {
-  background: #f5f7fa;
-  padding: 20px;
-}
-
-.toolbar {
+.navbar {
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 0 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.navbar-right {
+  display: flex;
+  gap: 10px;
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 280px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.add-button {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  font-weight: 600;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.search-input {
+  :deep(.el-input__wrapper) {
+    background: #f5f7fa;
+    border: 2px solid #e4e7eb;
+
+    &:hover {
+      border-color: #667eea;
+    }
+  }
+}
+
+.stats {
+  display: flex;
+  gap: 10px;
+}
+
+.stat-item {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  color: white;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 5px;
 }
 
 .password-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 16px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #909399;
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
 }
 
 .password-card {
-  cursor: pointer;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+
+  &:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
 }
 
-.password-card-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.password-title {
+.card-title {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
+  color: #303133;
+}
+
+.platform-icon {
+  font-size: 20px;
+}
+
+.platform-name {
   font-size: 16px;
 }
 
-.password-actions {
+.card-content {
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.password-info {
-  color: #606266;
-  font-size: 14px;
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
-.password-info p {
-  margin: 4px 0;
-}
-
-.notes {
-  color: #909399;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed #e4e7ed;
-}
-
-.form-tip {
-  color: #909399;
+.info-label {
+  min-width: 60px;
   font-size: 12px;
-  margin-top: 4px;
+  color: #909399;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.info-value {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #303133;
+}
+
+.account-text,
+.password-text {
+  flex: 1;
+  word-break: break-all;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.password-text.revealed {
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.copy-btn,
+.reveal-btn {
+  color: #667eea;
+  padding: 0 4px;
+
+  &:hover {
+    color: #764ba2;
+  }
+}
+
+.card-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 12px;
+  color: #909399;
+}
+
+.create-time {
+  display: block;
 }
 </style>

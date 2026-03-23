@@ -1,20 +1,25 @@
 <template>
   <div class="unlock-container">
     <div class="unlock-card">
-      <div class="logo">
-        <el-icon size="64" color="#409EFF"><Lock /></el-icon>
-        <h1>PasswordCat</h1>
-        <p class="subtitle">输入主密码解锁</p>
+      <!-- 顶部装饰 -->
+      <div class="top-decoration"></div>
+
+      <div class="logo-section">
+        <div class="logo-icon">🔐</div>
+        <h1 class="logo-title">PasswordCat</h1>
+        <p class="logo-subtitle">输入主密码解锁</p>
       </div>
 
-      <el-form @submit.prevent="handleUnlock">
+      <el-form @submit.prevent="handleUnlock" class="unlock-form">
         <el-form-item>
           <el-input
             v-model="password"
             type="password"
-            placeholder="请输入主密码"
+            placeholder="输入主密码"
             show-password
             size="large"
+            prefix-icon="Lock"
+            clearable
             @keyup.enter="handleUnlock"
           />
         </el-form-item>
@@ -23,119 +28,193 @@
           v-if="error"
           :title="error"
           type="error"
-          :closable="false"
-          style="margin-bottom: 16px"
+          :closable="true"
+          @close="error = ''"
+          class="error-alert"
         />
 
-        <el-button
-          type="primary"
-          size="large"
+        <el-button 
+          type="primary" 
+          size="large" 
+          @click="handleUnlock" 
           :loading="loading"
-          @click="handleUnlock"
-          style="width: 100%"
+          class="unlock-button"
         >
           解锁
         </el-button>
       </el-form>
 
-      <div class="actions">
-        <el-button link type="info" @click="showResetConfirm = true">
-          忘记密码？重置密码库
-        </el-button>
-      </div>
+      <!-- 底部装饰 -->
+      <div class="bottom-decoration"></div>
     </div>
-
-    <el-dialog
-      v-model="showResetConfirm"
-      title="确认重置"
-      width="400px"
-    >
-      <p>重置将删除所有已保存的密码数据，此操作不可恢复！</p>
-      <template #footer>
-        <el-button @click="showResetConfirm = false">取消</el-button>
-        <el-button type="danger" @click="handleReset">确认重置</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useVaultStore } from '@/stores/vault'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+
 const router = useRouter()
 const vaultStore = useVaultStore()
+
 const password = ref('')
-const loading = ref(false)
 const error = ref('')
-const showResetConfirm = ref(false)
+const loading = ref(false)
 
 const handleUnlock = async () => {
   if (!password.value) {
-    error.value = '请输入密码'
+    error.value = '请输入主密码'
     return
   }
-  
+
   loading.value = true
   error.value = ''
-  
+
   try {
     await vaultStore.unlockVault(password.value)
+    ElMessage.success('解锁成功！')
     router.push('/vault')
-  } catch (e: any) {
-    error.value = '密码错误'
+  } catch (err) {
+    error.value = '密码错误，请重试'
+    password.value = ''
   } finally {
     loading.value = false
   }
 }
-
-const handleReset = async () => {
-  // 删除 vault 文件
-  try {
-    // 这里需要添加删除命令
-    showResetConfirm.value = false
-    router.push('/')
-  } catch (e) {
-    console.error('Reset failed:', e)
-  }
-}
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .unlock-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
 }
 
 .unlock-card {
-  width: 420px;
-  padding: 40px;
-  background: white;
-  border-radius: 16px;
+  width: 100%;
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 50px 40px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+  }
 }
 
-.logo {
+.top-decoration {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.bottom-decoration {
+  position: absolute;
+  bottom: -50px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.logo-section {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 1;
 }
 
-.logo h1 {
-  margin-top: 16px;
-  font-size: 28px;
-  color: #333;
+.logo-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
 }
 
-.subtitle {
-  color: #666;
-  margin-top: 8px;
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
-.actions {
-  margin-top: 24px;
-  text-align: center;
+.logo-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-subtitle {
+  font-size: 14px;
+  color: #909399;
+  margin: 8px 0 0 0;
+  letter-spacing: 1px;
+}
+
+.unlock-form {
+  position: relative;
+  z-index: 1;
+
+  :deep(.el-input__wrapper) {
+    background: #f5f7fa;
+    border: 2px solid #e4e7eb;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: #667eea;
+    }
+
+    &:focus-within {
+      background: #fff;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    }
+  }
+}
+
+.error-alert {
+  margin-bottom: 20px;
+}
+
+.unlock-button {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  transition: all 0.3s;
+  margin-top: 20px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 </style>

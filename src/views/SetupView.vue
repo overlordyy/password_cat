@@ -1,155 +1,301 @@
 <template>
   <div class="setup-container">
     <div class="setup-card">
-      <div class="logo">
-        <el-icon size="64" color="#409EFF"><Lock /></el-icon>
-        <h1>PasswordCat</h1>
-        <p class="subtitle">本地密码管理器</p>
+      <!-- 顶部装饰 -->
+      <div class="top-decoration"></div>
+      
+      <div class="logo-section">
+        <div class="logo-icon">🔐</div>
+        <h1 class="logo-title">PasswordCat</h1>
+        <p class="logo-subtitle">智能密码管理器</p>
       </div>
 
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="setup-form">
         <el-form-item label="设置主密码" prop="password">
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="请输入主密码"
+            placeholder="输入强密码（8位以上）"
             show-password
             size="large"
+            prefix-icon="Lock"
+            clearable
           />
+          <div class="password-strength">
+            <div class="strength-bar">
+              <div class="strength-fill" :style="{ width: passwordStrength + '%', backgroundColor: strengthColor }"></div>
+            </div>
+            <span class="strength-text">{{ strengthText }}</span>
+          </div>
         </el-form-item>
 
-        <el-form-item label="确认主密码" prop="confirmPassword">
+        <el-form-item label="确认密码" prop="confirmPassword">
           <el-input
             v-model="form.confirmPassword"
             type="password"
-            placeholder="请再次输入主密码"
+            placeholder="再次输入密码"
             show-password
             size="large"
+            prefix-icon="Lock"
+            clearable
           />
         </el-form-item>
 
-        <el-alert
-          v-if="error"
-          :title="error"
-          type="error"
-          :closable="false"
-          style="margin-bottom: 16px"
-        />
-
-        <el-button
-          type="primary"
-          size="large"
+        <el-button 
+          type="primary" 
+          size="large" 
+          @click="handleSetup" 
           :loading="loading"
-          @click="handleCreate"
-          style="width: 100%"
+          class="setup-button"
         >
           创建密码库
         </el-button>
       </el-form>
 
-      <div class="tips">
-        <el-alert
-          title="重要提示"
-          type="warning"
-          :closable="false"
-          description="主密码用于加密您的所有数据。请务必牢记，如果丢失将无法恢复！"
-        />
-      </div>
+      <!-- 底部装饰 -->
+      <div class="bottom-decoration"></div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
 import { useVaultStore } from '@/stores/vault'
-import type { FormInstance, FormRules } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
-const formRef = ref<FormInstance>()
-const loading = ref(false)
-const error = ref('')
 
-const form = reactive({
+const form = ref({
   password: '',
   confirmPassword: '',
 })
 
-const validateConfirmPassword = (_rule: any, value: string, callback: any) => {
-  if (value !== form.password) {
-    callback(new Error('两次输入的密码不一致'))
-  } else {
-    callback()
-  }
-}
+const loading = ref(false)
 
-const rules: FormRules = {
+const rules = {
   password: [
     { required: true, message: '请输入主密码', trigger: 'blur' },
-    { min: 8, message: '密码长度至少8位', trigger: 'blur' },
+    { min: 8, message: '密码至少8位', trigger: 'blur' },
   ],
   confirmPassword: [
-    { required: true, message: '请确认主密码', trigger: 'blur' },
-    { validator: validateConfirmPassword, trigger: 'blur' },
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        if (value !== form.value.password) {
+          callback(new Error('两次输入密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
   ],
 }
 
-const handleCreate = async () => {
-  if (!formRef.value) return
+// 密码强度计算
+const passwordStrength = computed(() => {
+  const pwd = form.value.password
+  let strength = 0
   
-  await formRef.value.validate(async (valid) => {
-    if (!valid) return
-    
-    loading.value = true
-    error.value = ''
-    
-    try {
-      await vaultStore.createVault(form.password)
-      router.push('/vault')
-    } catch (e: any) {
-      error.value = e.message || '创建失败'
-    } finally {
-      loading.value = false
-    }
-  })
+  if (pwd.length >= 8) strength += 25
+  if (pwd.length >= 12) strength += 25
+  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength += 25
+  if (/\d/.test(pwd)) strength += 12.5
+  if (/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(pwd)) strength += 12.5
+  
+  return Math.min(strength, 100)
+})
+
+const strengthColor = computed(() => {
+  if (passwordStrength.value < 40) return '#F56C6C'
+  if (passwordStrength.value < 70) return '#E6A23C'
+  return '#67C23A'
+})
+
+const strengthText = computed(() => {
+  if (passwordStrength.value < 40) return '弱'
+  if (passwordStrength.value < 70) return '中'
+  return '强'
+})
+
+const handleSetup = async () => {
+  const formRef = ref()
+  await formRef.value?.validate()
+  
+  loading.value = true
+  try {
+    await vaultStore.setupVault(form.value.password)
+    ElMessage.success('密码库创建成功！')
+    router.push('/vault')
+  } catch (error) {
+    ElMessage.error(`创建失败: ${error}`)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .setup-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
 }
 
 .setup-card {
-  width: 420px;
-  padding: 40px;
-  background: white;
-  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 50px 40px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+  }
 }
 
-.logo {
+.top-decoration {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.bottom-decoration {
+  position: absolute;
+  bottom: -50px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.logo-section {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 1;
 }
 
-.logo h1 {
-  margin-top: 16px;
-  font-size: 28px;
-  color: #333;
+.logo-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
 }
 
-.subtitle {
-  color: #666;
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.logo-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-subtitle {
+  font-size: 14px;
+  color: #909399;
+  margin: 8px 0 0 0;
+  letter-spacing: 1px;
+}
+
+.setup-form {
+  position: relative;
+  z-index: 1;
+
+  :deep(.el-form-item__label) {
+    font-weight: 600;
+    color: #303133;
+    font-size: 14px;
+  }
+
+  :deep(.el-input__wrapper) {
+    background: #f5f7fa;
+    border: 2px solid #e4e7eb;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: #667eea;
+    }
+
+    &:focus-within {
+      background: #fff;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    }
+  }
+}
+
+.password-strength {
   margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.tips {
-  margin-top: 24px;
+.strength-bar {
+  flex: 1;
+  height: 4px;
+  background: #e4e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  transition: all 0.3s;
+  border-radius: 2px;
+}
+
+.strength-text {
+  font-size: 12px;
+  color: #909399;
+  min-width: 30px;
+}
+
+.setup-button {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  transition: all 0.3s;
+  margin-top: 20px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 </style>
