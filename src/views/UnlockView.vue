@@ -63,8 +63,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVaultStore } from '@/stores/vault'
-import { invoke } from '@tauri-apps/api/core'
-
 const router = useRouter()
 const vaultStore = useVaultStore()
 const password = ref('')
