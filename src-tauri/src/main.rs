@@ -3,16 +3,20 @@ use simplelog::{CombinedLogger, WriteLogger, TermLogger, Config, LevelFilter, Te
 use std::fs::OpenOptions;
 use std::path::PathBuf;
 
-fn get_log_path() -> PathBuf {
+fn get_log_dir() -> PathBuf {
     let path = if cfg!(target_os = "windows") {
         // Windows: C:\passwordcat\
         PathBuf::from("C:\\passwordcat")
     } else if cfg!(target_os = "macos") {
-        // macOS: /var/log/com.passwordcat.app/
-        PathBuf::from("/var/log/com.passwordcat.app")
+        // macOS: ~/Library/Logs/PasswordCat/
+        dirs::home_dir()
+            .map(|h| h.join("Library/Logs/PasswordCat"))
+            .unwrap_or_else(|| PathBuf::from("."))
     } else if cfg!(target_os = "linux") {
-        // Linux: /var/log/com.passwordcat.app/
-        PathBuf::from("/var/log/com.passwordcat.app")
+        // Linux: ~/.local/share/passwordcat/
+        dirs::home_dir()
+            .map(|h| h.join(".local/share/passwordcat"))
+            .unwrap_or_else(|| PathBuf::from("."))
     } else {
         PathBuf::from(".")
     };
@@ -22,7 +26,7 @@ fn get_log_path() -> PathBuf {
 }
 
 fn init_logging() {
-    let log_dir = get_log_path();
+    let log_dir = get_log_dir();
     let log_file_path = log_dir.join("passwordcat.log");
     
     let log_file = OpenOptions::new()
@@ -207,16 +211,17 @@ mod storage {
     use std::fs;
     use std::path::PathBuf;
 
-    fn get_vault_path() -> PathBuf {
+    fn get_vault_dir() -> PathBuf {
         let path = if cfg!(target_os = "windows") {
-            // Windows: C:\passwordcat\
             PathBuf::from("C:\\passwordcat")
         } else if cfg!(target_os = "macos") {
-            // macOS: /var/log/com.passwordcat.app/
-            PathBuf::from("/var/log/com.passwordcat.app")
+            dirs::home_dir()
+                .map(|h| h.join("Library/Application Support/PasswordCat"))
+                .unwrap_or_else(|| PathBuf::from("."))
         } else if cfg!(target_os = "linux") {
-            // Linux: /var/log/com.passwordcat.app/
-            PathBuf::from("/var/log/com.passwordcat.app")
+            dirs::home_dir()
+                .map(|h| h.join(".local/share/passwordcat"))
+                .unwrap_or_else(|| PathBuf::from("."))
         } else {
             PathBuf::from(".")
         };
@@ -227,7 +232,7 @@ mod storage {
 
     #[tauri::command]
     pub fn save_vault(data: &str) -> Result<(), String> {
-        let mut path = get_vault_path();
+        let mut path = get_vault_dir();
         path.push("vault.enc");
         info!("Saving vault to: {:?}", path);
         
@@ -242,7 +247,7 @@ mod storage {
 
     #[tauri::command]
     pub fn load_vault() -> Result<String, String> {
-        let mut path = get_vault_path();
+        let mut path = get_vault_dir();
         path.push("vault.enc");
         info!("Loading vault from: {:?}", path);
         
@@ -259,7 +264,7 @@ mod storage {
 
     #[tauri::command]
     pub fn vault_exists() -> bool {
-        let mut path = get_vault_path();
+        let mut path = get_vault_dir();
         path.push("vault.enc");
         let exists = path.exists();
         info!("vault_exists: {} -> {}", path.display(), exists);
