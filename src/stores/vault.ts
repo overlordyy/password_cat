@@ -39,18 +39,15 @@ export const useVaultStore = defineStore('vault', () => {
   const salt = ref('')
   const entries = ref<PasswordEntry[]>([])
   const servers = ref<ServerEntry[]>([])
-  const groups = ref<string[]>([])
+  const passwordGroups = ref<string[]>([])
+  const serverGroups = ref<string[]>([])
   const vaultExists = ref(false)
 
   // Getters
   const entryCount = computed(() => entries.value.length)
   const serverCount = computed(() => servers.value.length)
-  const allGroups = computed(() => {
-    const passwordGroups = entries.value.map(e => e.group).filter((g): g is string => !!g)
-    const serverGroups = servers.value.map(s => s.group).filter((g): g is string => !!g)
-    const all = [...new Set([...passwordGroups, ...serverGroups])]
-    return all.sort()
-  })
+  const allPasswordGroups = computed(() => passwordGroups.value.sort())
+  const allServerGroups = computed(() => serverGroups.value.sort())
   
   const searchEntries = (query: string) => {
     if (!query) return entries.value
@@ -97,7 +94,7 @@ export const useVaultStore = defineStore('vault', () => {
     salt.value = generatedSalt
     
     // 初始化空数据
-    const initialData = JSON.stringify({ entries: [], servers: [], groups: [] })
+    const initialData = JSON.stringify({ entries: [], servers: [], passwordGroups: [], serverGroups: [] })
     const encrypted = await invoke<string>('encrypt_data', {
       data: initialData,
       key: masterKey.value,
@@ -115,7 +112,8 @@ export const useVaultStore = defineStore('vault', () => {
     
     entries.value = []
     servers.value = []
-    groups.value = []
+    passwordGroups.value = []
+    serverGroups.value = []
     isUnlocked.value = true
     vaultExists.value = true
   }
@@ -141,7 +139,8 @@ export const useVaultStore = defineStore('vault', () => {
       const data = JSON.parse(decrypted)
       entries.value = data.entries || []
       servers.value = data.servers || []
-      groups.value = data.groups || []
+      passwordGroups.value = data.passwordGroups || []
+      serverGroups.value = data.serverGroups || []
       masterKey.value = key
       salt.value = vaultData.salt
       isUnlocked.value = true
@@ -156,7 +155,8 @@ export const useVaultStore = defineStore('vault', () => {
     masterKey.value = ''
     entries.value = []
     servers.value = []
-    groups.value = []
+    passwordGroups.value = []
+    serverGroups.value = []
   }
 
   const saveEntries = async () => {
@@ -164,7 +164,12 @@ export const useVaultStore = defineStore('vault', () => {
       throw new Error('Vault is locked')
     }
     
-    const data = JSON.stringify({ entries: entries.value, servers: servers.value, groups: groups.value })
+    const data = JSON.stringify({ 
+      entries: entries.value, 
+      servers: servers.value, 
+      passwordGroups: passwordGroups.value, 
+      serverGroups: serverGroups.value 
+    })
     const encrypted = await invoke<string>('encrypt_data', {
       data,
       key: masterKey.value,
@@ -230,8 +235,8 @@ export const useVaultStore = defineStore('vault', () => {
     }
     
     servers.value.push(newServer)
-    if (server.group && !groups.value.includes(server.group)) {
-      groups.value.push(server.group)
+    if (server.group && !serverGroups.value.includes(server.group)) {
+      serverGroups.value.push(server.group)
     }
     await saveEntries()
     return newServer
@@ -247,8 +252,8 @@ export const useVaultStore = defineStore('vault', () => {
       updatedAt: Date.now(),
     }
     
-    if (updates.group && !groups.value.includes(updates.group)) {
-      groups.value.push(updates.group)
+    if (updates.group && !serverGroups.value.includes(updates.group)) {
+      serverGroups.value.push(updates.group)
     }
     
     await saveEntries()
@@ -260,17 +265,28 @@ export const useVaultStore = defineStore('vault', () => {
   }
 
   const addPasswordGroup = (groupName: string) => {
-    if (!groups.value.includes(groupName)) {
-      groups.value.push(groupName)
-      groups.value.sort()
+    if (!passwordGroups.value.includes(groupName)) {
+      passwordGroups.value.push(groupName)
+      passwordGroups.value.sort()
     }
   }
 
-  const deleteGroup = async (groupName: string) => {
-    // 删除该分组下的所有条目
+  const addServerGroup = (groupName: string) => {
+    if (!serverGroups.value.includes(groupName)) {
+      serverGroups.value.push(groupName)
+      serverGroups.value.sort()
+    }
+  }
+
+  const deletePasswordGroup = async (groupName: string) => {
     entries.value = entries.value.filter(e => e.group !== groupName)
+    passwordGroups.value = passwordGroups.value.filter(g => g !== groupName)
+    await saveEntries()
+  }
+
+  const deleteServerGroup = async (groupName: string) => {
     servers.value = servers.value.filter(s => s.group !== groupName)
-    groups.value = groups.value.filter(g => g !== groupName)
+    serverGroups.value = serverGroups.value.filter(g => g !== groupName)
     await saveEntries()
   }
 
@@ -279,11 +295,13 @@ export const useVaultStore = defineStore('vault', () => {
     masterKey,
     entries,
     servers,
-    groups,
+    passwordGroups,
+    serverGroups,
     vaultExists,
     entryCount,
     serverCount,
-    allGroups,
+    allPasswordGroups,
+    allServerGroups,
     searchEntries,
     searchServers,
     checkVaultExists,
@@ -299,6 +317,8 @@ export const useVaultStore = defineStore('vault', () => {
     updateServer,
     deleteServer,
     addPasswordGroup,
-    deleteGroup,
+    addServerGroup,
+    deletePasswordGroup,
+    deleteServerGroup,
   }
 })

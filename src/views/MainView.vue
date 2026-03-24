@@ -47,12 +47,12 @@
             prefix-icon="Search"
           />
 
-          <!-- 分组筛选 -->
+          <!-- 密码分组筛选 -->
           <div class="group-filter">
             <el-select v-model="selectedGroup" placeholder="全部分组" clearable size="large">
               <el-option label="全部分组" value="" />
               <el-option
-                v-for="group in allGroups"
+                v-for="group in allPasswordGroups"
                 :key="group"
                 :label="group"
                 :value="group"
@@ -64,6 +64,28 @@
             <div class="stat-item">
               <div class="stat-number">{{ entries.length }}</div>
               <div class="stat-label">密码总数</div>
+            </div>
+          </div>
+
+          <!-- 密码分组管理 -->
+          <div class="group-management">
+            <div class="group-header">
+              <span class="group-title">🔑 密码分组</span>
+              <el-button type="text" size="small" @click="showPasswordGroupDialog = true">
+                <Plus />
+              </el-button>
+            </div>
+            <div class="group-list">
+              <div
+                v-for="group in allPasswordGroups"
+                :key="group"
+                class="group-item"
+              >
+                <span>{{ group }}</span>
+                <el-button type="text" size="small" @click="handleDeletePasswordGroup(group)">
+                  <Delete />
+                </el-button>
+              </div>
             </div>
           </div>
         </template>
@@ -84,12 +106,12 @@
             prefix-icon="Search"
           />
 
-          <!-- 分组筛选 -->
+          <!-- 服务器分组筛选 -->
           <div class="group-filter">
             <el-select v-model="selectedServerGroup" placeholder="全部分组" clearable size="large">
               <el-option label="全部分组" value="" />
               <el-option
-                v-for="group in allGroups"
+                v-for="group in allServerGroups"
                 :key="group"
                 :label="group"
                 :value="group"
@@ -103,29 +125,29 @@
               <div class="stat-label">服务器总数</div>
             </div>
           </div>
-        </template>
 
-        <!-- 分组管理 -->
-        <div class="group-management">
-          <div class="group-header">
-            <span class="group-title">📁 分组管理</span>
-            <el-button type="text" size="small" @click="showGroupDialog = true">
-              <Plus />
-            </el-button>
-          </div>
-          <div class="group-list">
-            <div
-              v-for="group in allGroups"
-              :key="group"
-              class="group-item"
-            >
-              <span>{{ group }}</span>
-              <el-button type="text" size="small" @click="handleDeleteGroup(group)">
-                <Delete />
+          <!-- 服务器分组管理 -->
+          <div class="group-management">
+            <div class="group-header">
+              <span class="group-title">🖥️ 服务器分组</span>
+              <el-button type="text" size="small" @click="showServerGroupDialog = true">
+                <Plus />
               </el-button>
             </div>
+            <div class="group-list">
+              <div
+                v-for="group in allServerGroups"
+                :key="group"
+                class="group-item"
+              >
+                <span>{{ group }}</span>
+                <el-button type="text" size="small" @click="handleDeleteServerGroup(group)">
+                  <Delete />
+                </el-button>
+              </div>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
 
       <!-- 右侧列表 -->
@@ -305,7 +327,7 @@
         <el-form-item label="分组">
           <el-select v-model="newEntry.group" placeholder="选择分组" clearable>
             <el-option
-              v-for="group in allGroups"
+              v-for="group in allPasswordGroups"
               :key="group"
               :label="group"
               :value="group"
@@ -314,7 +336,7 @@
           </el-select>
         </el-form-item>
         <el-form-item v-if="newEntry.group === '__new_group__'" label="新分组">
-          <el-input v-model="newGroupName" placeholder="输入分组名称" />
+          <el-input v-model="newPasswordGroupName" placeholder="输入分组名称" />
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="newEntry.notes" type="textarea" rows="3" />
@@ -347,7 +369,7 @@
         <el-form-item label="分组">
           <el-select v-model="newServer.group" placeholder="选择分组" clearable>
             <el-option
-              v-for="group in allGroups"
+              v-for="group in allServerGroups"
               :key="group"
               :label="group"
               :value="group"
@@ -356,7 +378,7 @@
           </el-select>
         </el-form-item>
         <el-form-item v-if="newServer.group === '__new_group__'" label="新分组">
-          <el-input v-model="newGroupName" placeholder="输入分组名称" />
+          <el-input v-model="newServerGroupName" placeholder="输入分组名称" />
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="newServer.notes" type="textarea" rows="3" />
@@ -368,16 +390,29 @@
       </template>
     </el-dialog>
 
-    <!-- 新建分组对话框 -->
-    <el-dialog v-model="showGroupDialog" title="新建分组" width="400px">
-      <el-form @submit.prevent="handleAddGroup">
+    <!-- 新建密码分组对话框 -->
+    <el-dialog v-model="showPasswordGroupDialog" title="新建密码分组" width="400px">
+      <el-form @submit.prevent="handleAddPasswordGroup">
         <el-form-item label="分组名称">
-          <el-input v-model="newGroupName" placeholder="输入分组名称" />
+          <el-input v-model="newPasswordGroupName" placeholder="输入分组名称" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showGroupDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleAddGroup">确定</el-button>
+        <el-button @click="showPasswordGroupDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleAddPasswordGroup">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 新建服务器分组对话框 -->
+    <el-dialog v-model="showServerGroupDialog" title="新建服务器分组" width="400px">
+      <el-form @submit.prevent="handleAddServerGroup">
+        <el-form-item label="分组名称">
+          <el-input v-model="newServerGroupName" placeholder="输入分组名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showServerGroupDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleAddServerGroup">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -411,8 +446,10 @@ const newEntry = ref({
   notes: '',
 })
 
-const newGroupName = ref('')
-const showGroupDialog = ref(false)
+const newPasswordGroupName = ref('')
+const newServerGroupName = ref('')
+const showPasswordGroupDialog = ref(false)
+const showServerGroupDialog = ref(false)
 
 const formRules = {
   title: [{ required: true, message: '请输入平台名称', trigger: 'blur' }],
@@ -447,7 +484,8 @@ const serverFormRules = {
 // Computed
 const entries = computed(() => vaultStore.entries)
 const servers = computed(() => vaultStore.servers)
-const allGroups = computed(() => vaultStore.allGroups)
+const allPasswordGroups = computed(() => vaultStore.allPasswordGroups)
+const allServerGroups = computed(() => vaultStore.allServerGroups)
 
 const filteredEntries = computed(() => {
   let result = entries.value
@@ -546,11 +584,11 @@ const handleAddEntry = async () => {
   // 处理新建分组
   let group = newEntry.value.group
   if (group === '__new_group__') {
-    if (!newGroupName.value.trim()) {
+    if (!newPasswordGroupName.value.trim()) {
       ElMessage.error('请输入分组名称')
       return
     }
-    group = newGroupName.value.trim()
+    group = newPasswordGroupName.value.trim()
     vaultStore.addPasswordGroup(group)
   }
 
@@ -584,12 +622,12 @@ const handleAddServer = async () => {
   // 处理新建分组
   let group = newServer.value.group
   if (group === '__new_group__') {
-    if (!newGroupName.value.trim()) {
+    if (!newServerGroupName.value.trim()) {
       ElMessage.error('请输入分组名称')
       return
     }
-    group = newGroupName.value.trim()
-    vaultStore.addPasswordGroup(group)
+    group = newServerGroupName.value.trim()
+    vaultStore.addServerGroup(group)
   }
 
   try {
@@ -665,28 +703,51 @@ const handleServerCommand = (command: string, server: ServerEntry) => {
   }
 }
 
-const handleAddGroup = () => {
-  if (!newGroupName.value.trim()) {
+const handleAddPasswordGroup = () => {
+  if (!newPasswordGroupName.value.trim()) {
     ElMessage.error('请输入分组名称')
     return
   }
-  vaultStore.addPasswordGroup(newGroupName.value.trim())
-  ElMessage.success('分组已创建')
-  showGroupDialog.value = false
-  newGroupName.value = ''
+  vaultStore.addPasswordGroup(newPasswordGroupName.value.trim())
+  ElMessage.success('密码分组已创建')
+  showPasswordGroupDialog.value = false
+  newPasswordGroupName.value = ''
 }
 
-const handleDeleteGroup = (group: string) => {
-  ElMessageBox.confirm(`确定删除分组"${group}"吗？该分组下的所有条目也会被删除。`, '警告', {
+const handleAddServerGroup = () => {
+  if (!newServerGroupName.value.trim()) {
+    ElMessage.error('请输入分组名称')
+    return
+  }
+  vaultStore.addServerGroup(newServerGroupName.value.trim())
+  ElMessage.success('服务器分组已创建')
+  showServerGroupDialog.value = false
+  newServerGroupName.value = ''
+}
+
+const handleDeletePasswordGroup = (group: string) => {
+  ElMessageBox.confirm(`确定删除密码分组"${group}"吗？该分组下的所有密码也会被删除。`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
   })
     .then(async () => {
-      await vaultStore.deleteGroup(group)
+      await vaultStore.deletePasswordGroup(group)
       ElMessage.success('分组已删除')
-      // 清除筛选
       if (selectedGroup.value === group) selectedGroup.value = ''
+    })
+    .catch(() => {})
+}
+
+const handleDeleteServerGroup = (group: string) => {
+  ElMessageBox.confirm(`确定删除服务器分组"${group}"吗？该分组下的所有服务器也会被删除。`, '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(async () => {
+      await vaultStore.deleteServerGroup(group)
+      ElMessage.success('分组已删除')
       if (selectedServerGroup.value === group) selectedServerGroup.value = ''
     })
     .catch(() => {})
@@ -705,7 +766,7 @@ const resetForm = () => {
     group: '',
     notes: '',
   }
-  newGroupName.value = ''
+  newPasswordGroupName.value = ''
   editingEntry.value = null
 }
 
@@ -719,7 +780,7 @@ const resetServerForm = () => {
     group: '',
     notes: '',
   }
-  newGroupName.value = ''
+  newServerGroupName.value = ''
   editingServer.value = null
 }
 
