@@ -798,12 +798,12 @@ const formatDate = (date: string | number) => {
 }
 
 .navbar {
-  height: 60px;
+  height: 50px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 30px;
+  padding: 0 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -813,7 +813,7 @@ const formatDate = (date: string | number) => {
 }
 
 .navbar-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: white;
   margin: 0;
@@ -821,12 +821,14 @@ const formatDate = (date: string | number) => {
 
 .navbar-tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   
   .el-button {
     background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
+    font-size: 13px;
+    padding: 6px 12px;
     
     &.el-button--primary {
       background: white;
@@ -843,32 +845,33 @@ const formatDate = (date: string | number) => {
 .content-wrapper {
   flex: 1;
   display: flex;
-  gap: 20px;
-  padding: 20px;
+  gap: 16px;
+  padding: 16px;
   overflow: hidden;
 }
 
 .sidebar {
-  width: 280px;
+  width: 240px;
   background: white;
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .add-button {
   width: 100%;
-  height: 44px;
+  height: 38px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
   font-weight: 600;
+  font-size: 14px;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
   }
 }
 
@@ -891,32 +894,32 @@ const formatDate = (date: string | number) => {
 
 .stats {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .stat-item {
   flex: 1;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
-  padding: 15px;
+  border-radius: 6px;
+  padding: 10px;
   text-align: center;
   color: white;
 }
 
 .stat-number {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   opacity: 0.8;
-  margin-top: 5px;
+  margin-top: 2px;
 }
 
 .group-management {
   margin-top: auto;
-  padding-top: 20px;
+  padding-top: 12px;
   border-top: 1px solid #eee;
 }
 
@@ -924,28 +927,31 @@ const formatDate = (date: string | number) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .group-title {
   font-weight: 600;
   color: #606266;
+  font-size: 13px;
 }
 
 .group-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
 }
 
 .group-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: #f5f7fa;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 4px;
+  font-size: 13px;
 }
 
 .content-list {
@@ -953,10 +959,10 @@ const formatDate = (date: string | number) => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 
   &::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
 
   &::-webkit-scrollbar-track {
@@ -965,7 +971,7 @@ const formatDate = (date: string | number) => {
 
   &::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
+    border-radius: 3px;
 
     &:hover {
       background: rgba(0, 0, 0, 0.3);
@@ -990,14 +996,13 @@ const formatDate = (date: string | number) => {
 .password-card,
 .server-card {
   background: white;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
 
   &:hover {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -1005,45 +1010,45 @@ const formatDate = (date: string | number) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .card-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-weight: 600;
   color: #303133;
 }
 
 .platform-icon,
 .server-icon {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .platform-name,
 .server-name {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .card-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .info-label {
-  min-width: 60px;
-  font-size: 12px;
+  min-width: 48px;
+  font-size: 11px;
   color: #909399;
   font-weight: 600;
   text-transform: uppercase;
@@ -1053,11 +1058,11 @@ const formatDate = (date: string | number) => {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 6px 10px;
   background: #f5f7fa;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 4px;
+  font-size: 13px;
   color: #303133;
 }
 
@@ -1092,18 +1097,18 @@ const formatDate = (date: string | number) => {
 }
 
 .card-actions {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid #f0f0f0;
   display: flex;
   justify-content: center;
 }
 
 .card-footer {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid #f0f0f0;
-  font-size: 12px;
+  font-size: 11px;
   color: #909399;
 }
 

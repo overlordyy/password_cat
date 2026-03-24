@@ -156,7 +156,7 @@ const handleUnlock = async () => {
 }
 
 .logo-title {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 700;
   margin: 0;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -166,9 +166,9 @@ const handleUnlock = async () => {
 }
 
 .logo-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: #909399;
-  margin: 8px 0 0 0;
+  margin: 6px 0 0 0;
   letter-spacing: 1px;
 }
 
@@ -194,23 +194,23 @@ const handleUnlock = async () => {
 }
 
 .error-alert {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .unlock-button {
   width: 100%;
-  height: 44px;
-  font-size: 16px;
+  height: 38px;
+  font-size: 14px;
   font-weight: 600;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   transition: all 0.3s;
-  margin-top: 20px;
+  margin-top: 16px;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
   }
 
   &:active {

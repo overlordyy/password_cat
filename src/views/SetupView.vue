@@ -148,11 +148,11 @@ const handleSetup = async () => {
 
 .setup-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 50px 40px;
+  border-radius: 16px;
+  padding: 36px 32px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
@@ -190,24 +190,24 @@ const handleSetup = async () => {
 
 .logo-section {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 28px;
   position: relative;
   z-index: 1;
 }
 
 .logo-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 40px;
+  margin-bottom: 12px;
   animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 .logo-title {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 700;
   margin: 0;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -217,9 +217,9 @@ const handleSetup = async () => {
 }
 
 .logo-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: #909399;
-  margin: 8px 0 0 0;
+  margin: 6px 0 0 0;
   letter-spacing: 1px;
 }
 
@@ -279,18 +279,18 @@ const handleSetup = async () => {
 
 .setup-button {
   width: 100%;
-  height: 44px;
-  font-size: 16px;
+  height: 38px;
+  font-size: 14px;
   font-weight: 600;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   transition: all 0.3s;
-  margin-top: 20px;
+  margin-top: 16px;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
   }
 
   &:active {

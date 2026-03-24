@@ -44,10 +44,10 @@
         "fullscreen": false,
         "resizable": true,
         "title": "PasswordCat",
-        "width": 1200,
-        "height": 800,
-        "minWidth": 900,
-        "minHeight": 600,
+        "width": 920,
+        "height": 670,
+        "minWidth": 920,
+        "minHeight": 670,
         "visible": true,
         "skipTaskbar": false
       }
