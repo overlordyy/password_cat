@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use log::{info, error};
 use simplelog::{CombinedLogger, WriteLogger, TermLogger, Config, LevelFilter, TerminalMode, ColorChoice};
 use std::fs::OpenOptions;
