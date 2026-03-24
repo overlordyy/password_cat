@@ -5,6 +5,20 @@
       <div class="navbar-left">
         <h1 class="navbar-title">🔐 PasswordCat</h1>
       </div>
+      <div class="navbar-tabs">
+        <el-button 
+          :type="activeTab === 'passwords' ? 'primary' : 'default'"
+          @click="activeTab = 'passwords'"
+        >
+          🔑 密码
+        </el-button>
+        <el-button 
+          :type="activeTab === 'servers' ? 'primary' : 'default'"
+          @click="activeTab = 'servers'"
+        >
+          🖥️ 服务器
+        </el-button>
+      </div>
       <div class="navbar-right">
         <el-button type="danger" size="small" @click="handleLogout">
           <template #icon><SwitchButton /></template>
@@ -17,125 +31,290 @@
     <div class="content-wrapper">
       <!-- 左侧操作栏 -->
       <div class="sidebar">
-        <el-button type="primary" size="large" class="add-button" @click="showAddDialog = true">
-          <template #icon><Plus /></template>
-          添加密码
-        </el-button>
-        
-        <el-input
-          v-model="searchQuery"
-          placeholder="搜索密码..."
-          clearable
-          size="large"
-          class="search-input"
-          prefix-icon="Search"
-        />
+        <!-- 密码标签页 -->
+        <template v-if="activeTab === 'passwords'">
+          <el-button type="primary" size="large" class="add-button" @click="showAddDialog = true">
+            <template #icon><Plus /></template>
+            添加密码
+          </el-button>
+          
+          <el-input
+            v-model="searchQuery"
+            placeholder="搜索密码..."
+            clearable
+            size="large"
+            class="search-input"
+            prefix-icon="Search"
+          />
 
-        <div class="stats">
-          <div class="stat-item">
-            <div class="stat-number">{{ entries.length }}</div>
-            <div class="stat-label">密码总数</div>
+          <!-- 分组筛选 -->
+          <div class="group-filter">
+            <el-select v-model="selectedGroup" placeholder="全部分组" clearable size="large">
+              <el-option label="全部分组" value="" />
+              <el-option
+                v-for="group in allGroups"
+                :key="group"
+                :label="group"
+                :value="group"
+              />
+            </el-select>
+          </div>
+
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-number">{{ entries.length }}</div>
+              <div class="stat-label">密码总数</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 服务器标签页 -->
+        <template v-else>
+          <el-button type="primary" size="large" class="add-button" @click="showServerDialog = true">
+            <template #icon><Plus /></template>
+            添加服务器
+          </el-button>
+          
+          <el-input
+            v-model="serverSearchQuery"
+            placeholder="搜索服务器..."
+            clearable
+            size="large"
+            class="search-input"
+            prefix-icon="Search"
+          />
+
+          <!-- 分组筛选 -->
+          <div class="group-filter">
+            <el-select v-model="selectedServerGroup" placeholder="全部分组" clearable size="large">
+              <el-option label="全部分组" value="" />
+              <el-option
+                v-for="group in allGroups"
+                :key="group"
+                :label="group"
+                :value="group"
+              />
+            </el-select>
+          </div>
+
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-number">{{ servers.length }}</div>
+              <div class="stat-label">服务器总数</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 分组管理 -->
+        <div class="group-management">
+          <div class="group-header">
+            <span class="group-title">📁 分组管理</span>
+            <el-button type="text" size="small" @click="showGroupDialog = true">
+              <Plus />
+            </el-button>
+          </div>
+          <div class="group-list">
+            <div
+              v-for="group in allGroups"
+              :key="group"
+              class="group-item"
+            >
+              <span>{{ group }}</span>
+              <el-button type="text" size="small" @click="handleDeleteGroup(group)">
+                <Delete />
+              </el-button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 右侧密码列表 -->
-      <div class="password-list">
-        <div v-if="filteredEntries.length === 0" class="empty-state">
-          <div class="empty-icon">📭</div>
-          <p>暂无密码记录</p>
-        </div>
+      <!-- 右侧列表 -->
+      <div class="content-list">
+        <!-- 密码列表 -->
+        <template v-if="activeTab === 'passwords'">
+          <div v-if="filteredEntries.length === 0" class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>暂无密码记录</p>
+          </div>
 
-        <div v-for="entry in filteredEntries" :key="entry.id" class="password-card">
-          <div class="card-header">
-            <div class="card-title">
-              <span class="platform-icon">{{ getPlatformIcon(entry.title) }}</span>
-              <span class="platform-name">{{ entry.title }}</span>
+          <div v-for="entry in filteredEntries" :key="entry.id" class="password-card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="platform-icon">{{ getPlatformIcon(entry.title) }}</span>
+                <span class="platform-name">{{ entry.title }}</span>
+                <el-tag v-if="entry.group" size="small" type="info">{{ entry.group }}</el-tag>
+              </div>
+              <el-dropdown @command="handleCommand($event, entry)">
+                <el-button type="text" size="small">
+                  <template #icon><MoreFilled /></template>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
-            <el-dropdown @command="handleCommand($event, entry)">
-              <el-button type="text" size="small">
-                <template #icon><MoreFilled /></template>
+
+            <div class="card-content">
+              <div class="info-row">
+                <div class="info-label">账户</div>
+                <div class="info-value">
+                  <span class="account-text">{{ entry.username }}</span>
+                  <el-button type="text" size="small" @click="copyToClipboard(entry.username, '账户')" class="copy-btn">
+                    <template #icon><DocumentCopy /></template>
+                  </el-button>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label">密码</div>
+                <div class="info-value">
+                  <span class="password-text" :class="{ revealed: revealedIds.has(entry.id) }">
+                    {{ revealedIds.has(entry.id) ? entry.password : '••••••••' }}
+                  </span>
+                  <el-button type="text" size="small" @click="toggleReveal(entry.id)" class="reveal-btn">
+                    <template #icon><View v-if="!revealedIds.has(entry.id)" /><Hide v-else /></template>
+                  </el-button>
+                  <el-button type="text" size="small" @click="copyToClipboard(entry.password, '密码')" class="copy-btn">
+                    <template #icon><DocumentCopy /></template>
+                  </el-button>
+                </div>
+              </div>
+
+              <div v-if="entry.notes" class="info-row">
+                <div class="info-label">备注</div>
+                <div class="info-value notes-value">{{ entry.notes }}</div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <span class="create-time">{{ formatDate(entry.createdAt) }}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- 服务器列表 -->
+        <template v-else>
+          <div v-if="filteredServers.length === 0" class="empty-state">
+            <div class="empty-icon">🖥️</div>
+            <p>暂无服务器记录</p>
+          </div>
+
+          <div v-for="server in filteredServers" :key="server.id" class="server-card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="server-icon">🖥️</span>
+                <span class="server-name">{{ server.name }}</span>
+                <el-tag v-if="server.group" size="small" type="info">{{ server.group }}</el-tag>
+              </div>
+              <el-dropdown @command="handleServerCommand($event, server)">
+                <el-button type="text" size="small">
+                  <template #icon><MoreFilled /></template>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+
+            <div class="card-content">
+              <div class="info-row">
+                <div class="info-label">IP</div>
+                <div class="info-value">
+                  <span class="server-ip">{{ server.ip }}</span>
+                  <el-button type="text" size="small" @click="copyToClipboard(server.ip, 'IP')" class="copy-btn">
+                    <template #icon><DocumentCopy /></template>
+                  </el-button>
+                </div>
+              </div>
+
+              <div v-if="server.domain" class="info-row">
+                <div class="info-label">域名</div>
+                <div class="info-value">
+                  <span class="server-domain">{{ server.domain }}</span>
+                  <el-button type="text" size="small" @click="copyToClipboard(server.domain!, '域名')" class="copy-btn">
+                    <template #icon><DocumentCopy /></template>
+                  </el-button>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label">账户</div>
+                <div class="info-value">
+                  <span class="server-username">{{ server.username }}</span>
+                  <el-button type="text" size="small" @click="copyToClipboard(server.username, '账户')" class="copy-btn">
+                    <template #icon><DocumentCopy /></template>
+                  </el-button>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label">密码</div>
+                <div class="info-value">
+                  <span class="password-text" :class="{ revealed: revealedServerIds.has(server.id) }">
+                    {{ revealedServerIds.has(server.id) ? server.password : '••••••••' }}
+                  </span>
+                  <el-button type="text" size="small" @click="toggleServerReveal(server.id)" class="reveal-btn">
+                    <template #icon><View v-if="!revealedServerIds.has(server.id)" /><Hide v-else /></template>
+                  </el-button>
+                  <el-button type="text" size="small" @click="copyToClipboard(server.password, '密码')" class="copy-btn">
+                    <template #icon><DocumentCopy /></template>
+                  </el-button>
+                </div>
+              </div>
+
+              <div v-if="server.notes" class="info-row">
+                <div class="info-label">备注</div>
+                <div class="info-value notes-value">{{ server.notes }}</div>
+              </div>
+            </div>
+
+            <!-- 一键复制按钮 -->
+            <div class="card-actions">
+              <el-button type="primary" size="small" @click="copyAllServerInfo(server)">
+                <template #icon><CopyDocument /></template>
+                一键复制全部信息
               </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-
-          <div class="card-content">
-            <!-- 账户信息 -->
-            <div class="info-row">
-              <div class="info-label">账户</div>
-              <div class="info-value">
-                <span class="account-text">{{ entry.username }}</span>
-                <el-button 
-                  type="text" 
-                  size="small" 
-                  @click="copyToClipboard(entry.username, '账户')"
-                  class="copy-btn"
-                >
-                  <template #icon><DocumentCopy /></template>
-                </el-button>
-              </div>
             </div>
 
-            <!-- 密码信息 -->
-            <div class="info-row">
-              <div class="info-label">密码</div>
-              <div class="info-value">
-                <span class="password-text" :class="{ revealed: revealedIds.has(entry.id) }">
-                  {{ revealedIds.has(entry.id) ? entry.password : '••••••••' }}
-                </span>
-                <el-button 
-                  type="text" 
-                  size="small" 
-                  @click="toggleReveal(entry.id)"
-                  class="reveal-btn"
-                >
-                  <template #icon>
-                    <View v-if="!revealedIds.has(entry.id)" />
-                    <Hide v-else />
-                  </template>
-                </el-button>
-                <el-button 
-                  type="text" 
-                  size="small" 
-                  @click="copyToClipboard(entry.password, '密码')"
-                  class="copy-btn"
-                >
-                  <template #icon><DocumentCopy /></template>
-                </el-button>
-              </div>
-            </div>
-
-            <!-- 备注 -->
-            <div v-if="entry.notes" class="info-row">
-              <div class="info-label">备注</div>
-              <div class="info-value">{{ entry.notes }}</div>
+            <div class="card-footer">
+              <span class="create-time">{{ formatDate(server.createdAt) }}</span>
             </div>
           </div>
-
-          <div class="card-footer">
-            <span class="create-time">{{ formatDate(entry.createdAt) }}</span>
-          </div>
-        </div>
+        </template>
       </div>
     </div>
 
-    <!-- 添加/编辑对话框 -->
-    <el-dialog v-model="showAddDialog" title="添加密码" width="500px" @close="resetForm">
+    <!-- 添加/编辑密码对话框 -->
+    <el-dialog v-model="showAddDialog" :title="editingEntry ? '编辑密码' : '添加密码'" width="500px" @close="resetForm">
       <el-form :model="newEntry" :rules="formRules" ref="formRef" label-width="80px">
-        <el-form-item label="平台" prop="platform">
-          <el-input v-model="newEntry.platform" placeholder="如: GitHub, Gmail" />
+        <el-form-item label="平台" prop="title">
+          <el-input v-model="newEntry.title" placeholder="如: GitHub, Gmail" />
         </el-form-item>
-        <el-form-item label="账户" prop="account">
-          <el-input v-model="newEntry.account" placeholder="邮箱或用户名" />
+        <el-form-item label="账户" prop="username">
+          <el-input v-model="newEntry.username" placeholder="邮箱或用户名" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input v-model="newEntry.password" type="password" show-password />
+        </el-form-item>
+        <el-form-item label="分组">
+          <el-select v-model="newEntry.group" placeholder="选择分组" clearable>
+            <el-option
+              v-for="group in allGroups"
+              :key="group"
+              :label="group"
+              :value="group"
+            />
+            <el-option label="+ 新建分组" value="__new_group__" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="newEntry.group === '__new_group__'" label="新分组">
+          <el-input v-model="newGroupName" placeholder="输入分组名称" />
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="newEntry.notes" type="textarea" rows="3" />
@@ -146,48 +325,165 @@
         <el-button type="primary" @click="handleAddEntry">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 添加/编辑服务器对话框 -->
+    <el-dialog v-model="showServerDialog" :title="editingServer ? '编辑服务器' : '添加服务器'" width="500px" @close="resetServerForm">
+      <el-form :model="newServer" :rules="serverFormRules" ref="serverFormRef" label-width="80px">
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="newServer.name" placeholder="如: 生产环境Web服务器" />
+        </el-form-item>
+        <el-form-item label="IP地址" prop="ip">
+          <el-input v-model="newServer.ip" placeholder="如: 192.168.1.100" />
+        </el-form-item>
+        <el-form-item label="域名">
+          <el-input v-model="newServer.domain" placeholder="如: example.com" />
+        </el-form-item>
+        <el-form-item label="账户" prop="username">
+          <el-input v-model="newServer.username" placeholder="用户名" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="newServer.password" type="password" show-password />
+        </el-form-item>
+        <el-form-item label="分组">
+          <el-select v-model="newServer.group" placeholder="选择分组" clearable>
+            <el-option
+              v-for="group in allGroups"
+              :key="group"
+              :label="group"
+              :value="group"
+            />
+            <el-option label="+ 新建分组" value="__new_group__" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="newServer.group === '__new_group__'" label="新分组">
+          <el-input v-model="newGroupName" placeholder="输入分组名称" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="newServer.notes" type="textarea" rows="3" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showServerDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleAddServer">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 新建分组对话框 -->
+    <el-dialog v-model="showGroupDialog" title="新建分组" width="400px">
+      <el-form @submit.prevent="handleAddGroup">
+        <el-form-item label="分组名称">
+          <el-input v-model="newGroupName" placeholder="输入分组名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showGroupDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleAddGroup">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useVaultStore } from '@/stores/vault'
+import { useVaultStore, type PasswordEntry, type ServerEntry } from '@/stores/vault'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, MoreFilled, DocumentCopy, View, Hide, SwitchButton } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, DocumentCopy, View, Hide, SwitchButton, Delete, CopyDocument } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 
+// Tab state
+const activeTab = ref<'passwords' | 'servers'>('passwords')
+
+// Password state
 const searchQuery = ref('')
+const selectedGroup = ref('')
 const showAddDialog = ref(false)
+const editingEntry = ref<PasswordEntry | null>(null)
 const revealedIds = ref(new Set<string>())
 
 const newEntry = ref({
-  platform: '',
-  account: '',
+  title: '',
+  username: '',
   password: '',
+  group: '',
   notes: '',
 })
 
+const newGroupName = ref('')
+const showGroupDialog = ref(false)
+
 const formRules = {
-  platform: [{ required: true, message: '请输入平台名称', trigger: 'blur' }],
-  account: [{ required: true, message: '请输入账户', trigger: 'blur' }],
+  title: [{ required: true, message: '请输入平台名称', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入账户', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
-const entries = computed(() => vaultStore.entries)
+// Server state
+const serverSearchQuery = ref('')
+const selectedServerGroup = ref('')
+const showServerDialog = ref(false)
+const editingServer = ref<ServerEntry | null>(null)
+const revealedServerIds = ref(new Set<string>())
 
-const filteredEntries = computed(() => {
-  if (!searchQuery.value) return entries.value
-  const query = searchQuery.value.toLowerCase()
-  return entries.value.filter(
-    entry =>
-      entry.title.toLowerCase().includes(query) ||
-      entry.username.toLowerCase().includes(query)
-  )
+const newServer = ref({
+  name: '',
+  ip: '',
+  domain: '',
+  username: '',
+  password: '',
+  group: '',
+  notes: '',
 })
 
+const serverFormRules = {
+  name: [{ required: true, message: '请输入服务器名称', trigger: 'blur' }],
+  ip: [{ required: true, message: '请输入IP地址', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入账户', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+}
+
+// Computed
+const entries = computed(() => vaultStore.entries)
+const servers = computed(() => vaultStore.servers)
+const allGroups = computed(() => vaultStore.allGroups)
+
+const filteredEntries = computed(() => {
+  let result = entries.value
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(
+      entry =>
+        entry.title.toLowerCase().includes(query) ||
+        entry.username.toLowerCase().includes(query)
+    )
+  }
+  if (selectedGroup.value) {
+    result = result.filter(entry => entry.group === selectedGroup.value)
+  }
+  return result
+})
+
+const filteredServers = computed(() => {
+  let result = servers.value
+  if (serverSearchQuery.value) {
+    const query = serverSearchQuery.value.toLowerCase()
+    result = result.filter(
+      server =>
+        server.name.toLowerCase().includes(query) ||
+        server.ip.includes(query) ||
+        server.domain?.toLowerCase().includes(query) ||
+        server.username.toLowerCase().includes(query)
+    )
+  }
+  if (selectedServerGroup.value) {
+    result = result.filter(server => server.group === selectedServerGroup.value)
+  }
+  return result
+})
+
+// Methods
 const getPlatformIcon = (platform: string) => {
   const icons: Record<string, string> = {
     github: '🐙',
@@ -209,6 +505,14 @@ const toggleReveal = (id: string) => {
   }
 }
 
+const toggleServerReveal = (id: string) => {
+  if (revealedServerIds.value.has(id)) {
+    revealedServerIds.value.delete(id)
+  } else {
+    revealedServerIds.value.add(id)
+  }
+}
+
 const copyToClipboard = async (text: string, label: string) => {
   try {
     await navigator.clipboard.writeText(text)
@@ -218,29 +522,109 @@ const copyToClipboard = async (text: string, label: string) => {
   }
 }
 
+const copyAllServerInfo = async (server: ServerEntry) => {
+  const info = `【${server.name}】
+IP: ${server.ip}
+${server.domain ? `域名: ${server.domain}\n` : ''}账户: ${server.username}
+密码: ${server.password}
+${server.notes ? `\n备注: ${server.notes}` : ''}`
+
+  try {
+    await navigator.clipboard.writeText(info)
+    ElMessage.success('服务器信息已全部复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败')
+  }
+}
+
 const handleAddEntry = async () => {
-  if (!newEntry.value.platform || !newEntry.value.account || !newEntry.value.password) {
+  if (!newEntry.value.title || !newEntry.value.username || !newEntry.value.password) {
     ElMessage.error('请填写必填项')
     return
   }
 
+  // 处理新建分组
+  let group = newEntry.value.group
+  if (group === '__new_group__') {
+    if (!newGroupName.value.trim()) {
+      ElMessage.error('请输入分组名称')
+      return
+    }
+    group = newGroupName.value.trim()
+    vaultStore.addPasswordGroup(group)
+  }
+
   try {
-    await vaultStore.addEntry({
-      title: newEntry.value.platform,
-      username: newEntry.value.account,
-      password: newEntry.value.password,
-      notes: newEntry.value.notes,
-    })
-    ElMessage.success('密码已添加')
+    if (editingEntry.value) {
+      await vaultStore.updateEntry(editingEntry.value.id, {
+        ...newEntry.value,
+        group: group || undefined,
+      })
+      ElMessage.success('密码已更新')
+    } else {
+      await vaultStore.addEntry({
+        ...newEntry.value,
+        group: group || undefined,
+      })
+      ElMessage.success('密码已添加')
+    }
     showAddDialog.value = false
     resetForm()
   } catch (error) {
-    ElMessage.error(`添加失败: ${error}`)
+    ElMessage.error(`操作失败: ${error}`)
   }
 }
 
-const handleCommand = (command: string, entry: any) => {
-  if (command === 'delete') {
+const handleAddServer = async () => {
+  if (!newServer.value.name || !newServer.value.ip || !newServer.value.username || !newServer.value.password) {
+    ElMessage.error('请填写必填项')
+    return
+  }
+
+  // 处理新建分组
+  let group = newServer.value.group
+  if (group === '__new_group__') {
+    if (!newGroupName.value.trim()) {
+      ElMessage.error('请输入分组名称')
+      return
+    }
+    group = newGroupName.value.trim()
+    vaultStore.addPasswordGroup(group)
+  }
+
+  try {
+    if (editingServer.value) {
+      await vaultStore.updateServer(editingServer.value.id, {
+        ...newServer.value,
+        group: group || undefined,
+      })
+      ElMessage.success('服务器已更新')
+    } else {
+      await vaultStore.addServer({
+        ...newServer.value,
+        group: group || undefined,
+      })
+      ElMessage.success('服务器已添加')
+    }
+    showServerDialog.value = false
+    resetServerForm()
+  } catch (error) {
+    ElMessage.error(`操作失败: ${error}`)
+  }
+}
+
+const handleCommand = (command: string, entry: PasswordEntry) => {
+  if (command === 'edit') {
+    editingEntry.value = entry
+    newEntry.value = {
+      title: entry.title,
+      username: entry.username,
+      password: entry.password,
+      group: entry.group || '',
+      notes: entry.notes || '',
+    }
+    showAddDialog.value = true
+  } else if (command === 'delete') {
     ElMessageBox.confirm('确定删除此密码吗？', '警告', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
@@ -254,6 +638,60 @@ const handleCommand = (command: string, entry: any) => {
   }
 }
 
+const handleServerCommand = (command: string, server: ServerEntry) => {
+  if (command === 'edit') {
+    editingServer.value = server
+    newServer.value = {
+      name: server.name,
+      ip: server.ip,
+      domain: server.domain || '',
+      username: server.username,
+      password: server.password,
+      group: server.group || '',
+      notes: server.notes || '',
+    }
+    showServerDialog.value = true
+  } else if (command === 'delete') {
+    ElMessageBox.confirm('确定删除此服务器吗？', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(async () => {
+        await vaultStore.deleteServer(server.id)
+        ElMessage.success('已删除')
+      })
+      .catch(() => {})
+  }
+}
+
+const handleAddGroup = () => {
+  if (!newGroupName.value.trim()) {
+    ElMessage.error('请输入分组名称')
+    return
+  }
+  vaultStore.addPasswordGroup(newGroupName.value.trim())
+  ElMessage.success('分组已创建')
+  showGroupDialog.value = false
+  newGroupName.value = ''
+}
+
+const handleDeleteGroup = (group: string) => {
+  ElMessageBox.confirm(`确定删除分组"${group}"吗？该分组下的所有条目也会被删除。`, '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(async () => {
+      await vaultStore.deleteGroup(group)
+      ElMessage.success('分组已删除')
+      // 清除筛选
+      if (selectedGroup.value === group) selectedGroup.value = ''
+      if (selectedServerGroup.value === group) selectedServerGroup.value = ''
+    })
+    .catch(() => {})
+}
+
 const handleLogout = () => {
   vaultStore.lockVault()
   router.push('/unlock')
@@ -261,11 +699,28 @@ const handleLogout = () => {
 
 const resetForm = () => {
   newEntry.value = {
-    platform: '',
-    account: '',
+    title: '',
+    username: '',
     password: '',
+    group: '',
     notes: '',
   }
+  newGroupName.value = ''
+  editingEntry.value = null
+}
+
+const resetServerForm = () => {
+  newServer.value = {
+    name: '',
+    ip: '',
+    domain: '',
+    username: '',
+    password: '',
+    group: '',
+    notes: '',
+  }
+  newGroupName.value = ''
+  editingServer.value = null
 }
 
 const formatDate = (date: string | number) => {
@@ -291,11 +746,32 @@ const formatDate = (date: string | number) => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
 .navbar-title {
   font-size: 24px;
   font-weight: 700;
   color: white;
   margin: 0;
+}
+
+.navbar-tabs {
+  display: flex;
+  gap: 10px;
+  
+  .el-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    
+    &.el-button--primary {
+      background: white;
+      color: #667eea;
+    }
+  }
 }
 
 .navbar-right {
@@ -346,6 +822,12 @@ const formatDate = (date: string | number) => {
   }
 }
 
+.group-filter {
+  :deep(.el-select) {
+    width: 100%;
+  }
+}
+
 .stats {
   display: flex;
   gap: 10px;
@@ -371,7 +853,41 @@ const formatDate = (date: string | number) => {
   margin-top: 5px;
 }
 
-.password-list {
+.group-management {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.group-title {
+  font-weight: 600;
+  color: #606266;
+}
+
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.content-list {
   flex: 1;
   overflow-y: auto;
   display: flex;
@@ -410,7 +926,8 @@ const formatDate = (date: string | number) => {
   }
 }
 
-.password-card {
+.password-card,
+.server-card {
   background: white;
   border-radius: 12px;
   padding: 16px;
@@ -440,11 +957,13 @@ const formatDate = (date: string | number) => {
   color: #303133;
 }
 
-.platform-icon {
+.platform-icon,
+.server-icon {
   font-size: 20px;
 }
 
-.platform-name {
+.platform-name,
+.server-name {
   font-size: 16px;
 }
 
@@ -481,8 +1000,17 @@ const formatDate = (date: string | number) => {
   color: #303133;
 }
 
+.notes-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .account-text,
-.password-text {
+.password-text,
+.server-ip,
+.server-domain,
+.server-username {
   flex: 1;
   word-break: break-all;
   font-family: 'Monaco', 'Courier New', monospace;
@@ -500,6 +1028,14 @@ const formatDate = (date: string | number) => {
   &:hover {
     color: #764ba2;
   }
+}
+
+.card-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: center;
 }
 
 .card-footer {
