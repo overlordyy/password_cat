@@ -20,6 +20,13 @@
         </el-button>
       </div>
       <div class="navbar-right">
+        <el-button type="info" size="small" @click="themeStore.toggleTheme">
+          <template #icon>
+            <Sunny v-if="themeStore.theme === 'dark'" />
+            <Moon v-else />
+          </template>
+          {{ themeStore.theme === 'light' ? '暗色' : '亮色' }}
+        </el-button>
         <el-button type="danger" size="small" @click="handleLogout">
           <template #icon><SwitchButton /></template>
           退出登录
@@ -421,12 +428,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useVaultStore, type PasswordEntry, type ServerEntry } from '@/stores/vault'
+import { useThemeStore } from '@/stores/theme'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, MoreFilled, DocumentCopy, View, Hide, SwitchButton, Delete, CopyDocument } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, DocumentCopy, View, Hide, SwitchButton, Delete, CopyDocument, Sunny, Moon } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
+const themeStore = useThemeStore()
 
 // Tab state
 const activeTab = ref<'passwords' | 'servers'>('passwords')
@@ -794,12 +803,13 @@ const formatDate = (date: string | number) => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--bg-primary);
+  transition: background 0.3s;
 }
 
 .navbar {
   height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-navbar);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -815,7 +825,7 @@ const formatDate = (date: string | number) => {
 .navbar-title {
   font-size: 20px;
   font-weight: 700;
-  color: white;
+  color: var(--text-white);
   margin: 0;
 }
 
@@ -852,10 +862,10 @@ const formatDate = (date: string | number) => {
 
 .sidebar {
   width: 240px;
-  background: white;
+  background: var(--bg-sidebar);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sidebar);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -864,24 +874,24 @@ const formatDate = (date: string | number) => {
 .add-button {
   width: 100%;
   height: 38px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-button-primary);
   border: none;
   font-weight: 600;
   font-size: 14px;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   }
 }
 
 .search-input {
   :deep(.el-input__wrapper) {
-    background: #f5f7fa;
-    border: 2px solid #e4e7eb;
+    background: var(--bg-input);
+    border: 2px solid var(--border-color);
 
     &:hover {
-      border-color: #667eea;
+      border-color: var(--border-hover);
     }
   }
 }
@@ -899,11 +909,11 @@ const formatDate = (date: string | number) => {
 
 .stat-item {
   flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-button-primary);
   border-radius: 6px;
   padding: 10px;
   text-align: center;
-  color: white;
+  color: var(--text-white);
 }
 
 .stat-number {
@@ -920,7 +930,7 @@ const formatDate = (date: string | number) => {
 .group-management {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .group-header {
@@ -932,7 +942,7 @@ const formatDate = (date: string | number) => {
 
 .group-title {
   font-weight: 600;
-  color: #606266;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -949,9 +959,10 @@ const formatDate = (date: string | number) => {
   justify-content: space-between;
   align-items: center;
   padding: 6px 10px;
-  background: #f5f7fa;
+  background: var(--bg-input);
   border-radius: 4px;
   font-size: 13px;
+  color: var(--text-primary);
 }
 
 .content-list {
@@ -995,14 +1006,14 @@ const formatDate = (date: string | number) => {
 
 .password-card,
 .server-card {
-  background: white;
+  background: var(--bg-card);
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
   transition: all 0.3s;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-card-hover);
   }
 }
 
@@ -1012,7 +1023,7 @@ const formatDate = (date: string | number) => {
   align-items: center;
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .card-title {
@@ -1020,7 +1031,7 @@ const formatDate = (date: string | number) => {
   align-items: center;
   gap: 6px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .platform-icon,
@@ -1049,7 +1060,7 @@ const formatDate = (date: string | number) => {
 .info-label {
   min-width: 48px;
   font-size: 11px;
-  color: #909399;
+  color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -1060,10 +1071,10 @@ const formatDate = (date: string | number) => {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  background: #f5f7fa;
+  background: var(--bg-input);
   border-radius: 4px;
   font-size: 13px;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .notes-value {
@@ -1099,7 +1110,7 @@ const formatDate = (date: string | number) => {
 .card-actions {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: center;
 }
@@ -1107,9 +1118,9 @@ const formatDate = (date: string | number) => {
 .card-footer {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
   font-size: 11px;
-  color: #909399;
+  color: var(--text-muted);
 }
 
 .create-time {

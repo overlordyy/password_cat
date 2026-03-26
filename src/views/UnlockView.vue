@@ -1,5 +1,16 @@
 <template>
   <div class="unlock-container">
+    <!-- 主题切换按钮 -->
+    <div class="theme-toggle">
+      <el-button type="info" size="small" @click="themeStore.toggleTheme">
+        <template #icon>
+          <Sunny v-if="themeStore.theme === 'dark'" />
+          <Moon v-else />
+        </template>
+        {{ themeStore.theme === 'light' ? '暗色模式' : '亮色模式' }}
+      </el-button>
+    </div>
+    
     <div class="unlock-card">
       <!-- 顶部装饰 -->
       <div class="top-decoration"></div>
@@ -53,11 +64,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useVaultStore } from '@/stores/vault'
+import { useThemeStore } from '@/stores/theme'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Sunny, Moon } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
+const themeStore = useThemeStore()
 
 const password = ref('')
 const error = ref('')
@@ -91,14 +105,21 @@ const handleUnlock = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-navbar);
   padding: 20px;
+  position: relative;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .unlock-card {
   width: 100%;
   max-width: 380px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 50px 40px;
@@ -113,7 +134,7 @@ const handleUnlock = async () => {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: var(--bg-button-primary);
   }
 }
 
@@ -159,7 +180,7 @@ const handleUnlock = async () => {
   font-size: 26px;
   font-weight: 700;
   margin: 0;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-button-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -167,7 +188,7 @@ const handleUnlock = async () => {
 
 .logo-subtitle {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-muted);
   margin: 6px 0 0 0;
   letter-spacing: 1px;
 }
@@ -177,18 +198,18 @@ const handleUnlock = async () => {
   z-index: 1;
 
   :deep(.el-input__wrapper) {
-    background: #f5f7fa;
-    border: 2px solid #e4e7eb;
+    background: var(--bg-input);
+    border: 2px solid var(--border-color);
     transition: all 0.3s;
 
     &:hover {
-      border-color: #667eea;
+      border-color: var(--border-hover);
     }
 
     &:focus-within {
-      background: #fff;
-      border-color: #667eea;
-      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+      background: var(--bg-secondary);
+      border-color: var(--border-hover);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
     }
   }
 }
@@ -204,13 +225,13 @@ const handleUnlock = async () => {
   font-weight: 600;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-button-primary);
   transition: all 0.3s;
   margin-top: 16px;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
   }
 
   &:active {

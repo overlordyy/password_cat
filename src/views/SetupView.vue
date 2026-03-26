@@ -142,14 +142,14 @@ const handleSetup = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-navbar);
   padding: 20px;
 }
 
 .setup-card {
   width: 100%;
   max-width: 380px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 36px 32px;
@@ -164,7 +164,7 @@ const handleSetup = async () => {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: var(--bg-button-primary);
   }
 }
 
@@ -210,7 +210,7 @@ const handleSetup = async () => {
   font-size: 26px;
   font-weight: 700;
   margin: 0;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-button-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -218,7 +218,7 @@ const handleSetup = async () => {
 
 .logo-subtitle {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-muted);
   margin: 6px 0 0 0;
   letter-spacing: 1px;
 }
@@ -229,23 +229,23 @@ const handleSetup = async () => {
 
   :deep(.el-form-item__label) {
     font-weight: 600;
-    color: #303133;
+    color: var(--text-primary);
     font-size: 14px;
   }
 
   :deep(.el-input__wrapper) {
-    background: #f5f7fa;
-    border: 2px solid #e4e7eb;
+    background: var(--bg-input);
+    border: 2px solid var(--border-color);
     transition: all 0.3s;
 
     &:hover {
-      border-color: #667eea;
+      border-color: var(--border-hover);
     }
 
     &:focus-within {
-      background: #fff;
-      border-color: #667eea;
-      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+      background: var(--bg-secondary);
+      border-color: var(--border-hover);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
     }
   }
 }
@@ -260,7 +260,7 @@ const handleSetup = async () => {
 .strength-bar {
   flex: 1;
   height: 4px;
-  background: #e4e7eb;
+  background: var(--border-color);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -273,7 +273,7 @@ const handleSetup = async () => {
 
 .strength-text {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-muted);
   min-width: 30px;
 }
 
@@ -284,13 +284,13 @@ const handleSetup = async () => {
   font-weight: 600;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-button-primary);
   transition: all 0.3s;
   margin-top: 16px;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
   }
 
   &:active {
