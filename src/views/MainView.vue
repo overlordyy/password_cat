@@ -18,6 +18,18 @@
         >
           🖥️ 服务器
         </el-button>
+        <el-button
+          :type="activeTab === 'diff' ? 'primary' : 'default'"
+          @click="activeTab = 'diff'"
+        >
+          📄 文本对比
+        </el-button>
+        <el-button
+          :type="activeTab === 'json' ? 'primary' : 'default'"
+          @click="activeTab = 'json'"
+        >
+          🔧 JSON格式化
+        </el-button>
       </div>
       <div class="navbar-right">
         <el-button type="info" size="small" @click="themeStore.toggleTheme">
@@ -35,9 +47,18 @@
     </div>
 
     <!-- 主容器 -->
-    <div class="content-wrapper">
-      <!-- 左侧操作栏 -->
-      <div class="sidebar">
+    <div class="content-wrapper" :class="{ 'diff-mode': activeTab === 'diff' || activeTab === 'json' }">
+      <!-- 文本对比全宽视图 -->
+      <div v-if="activeTab === 'diff'" class="diff-full-view">
+        <TextDiff />
+      </div>
+
+      <!-- JSON 格式化全宽视图 -->
+      <div v-if="activeTab === 'json'" class="diff-full-view">
+        <JsonFormatter />
+      </div>
+
+      <div v-if="activeTab !== 'diff' && activeTab !== 'json'" class="sidebar">
         <!-- 密码标签页 -->
         <template v-if="activeTab === 'passwords'">
           <el-button type="primary" size="large" class="add-button" @click="showAddDialog = true">
@@ -158,7 +179,7 @@
       </div>
 
       <!-- 右侧列表 -->
-      <div class="content-list">
+      <div v-if="activeTab !== 'diff' && activeTab !== 'json'" class="content-list">
         <!-- 密码列表 -->
         <template v-if="activeTab === 'passwords'">
           <div v-if="filteredEntries.length === 0" class="empty-state">
@@ -432,13 +453,15 @@ import { useThemeStore } from '@/stores/theme'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, MoreFilled, DocumentCopy, View, Hide, SwitchButton, Delete, CopyDocument, Sunny, Moon } from '@element-plus/icons-vue'
+import TextDiff from '@/components/TextDiff.vue'
+import JsonFormatter from '@/components/JsonFormatter.vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 const themeStore = useThemeStore()
 
 // Tab state
-const activeTab = ref<'passwords' | 'servers'>('passwords')
+const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json'>('passwords')
 
 // Password state
 const searchQuery = ref('')
@@ -858,6 +881,17 @@ const formatDate = (date: string | number) => {
   gap: 16px;
   padding: 16px;
   overflow: hidden;
+
+  &.diff-mode {
+    padding: 16px;
+  }
+}
+
+.diff-full-view {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar {
