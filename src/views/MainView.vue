@@ -30,6 +30,24 @@
         >
           🔧 JSON格式化
         </el-button>
+        <el-button
+          :type="activeTab === 'base64' ? 'primary' : 'default'"
+          @click="activeTab = 'base64'"
+        >
+          🔤 Base64
+        </el-button>
+        <el-button
+          :type="activeTab === 'timestamp' ? 'primary' : 'default'"
+          @click="activeTab = 'timestamp'"
+        >
+          🕐 时间戳
+        </el-button>
+        <el-button
+          :type="activeTab === 'hash' ? 'primary' : 'default'"
+          @click="activeTab = 'hash'"
+        >
+          #️⃣ 哈希
+        </el-button>
       </div>
       <div class="navbar-right">
         <el-button type="info" size="small" @click="themeStore.toggleTheme">
@@ -47,7 +65,7 @@
     </div>
 
     <!-- 主容器 -->
-    <div class="content-wrapper" :class="{ 'diff-mode': activeTab === 'diff' || activeTab === 'json' }">
+    <div class="content-wrapper" :class="{ 'diff-mode': activeTab === 'diff' || activeTab === 'json' || activeTab === 'base64' || activeTab === 'timestamp' || activeTab === 'hash' }">
       <!-- 文本对比全宽视图 -->
       <div v-if="activeTab === 'diff'" class="diff-full-view">
         <TextDiff />
@@ -58,7 +76,22 @@
         <JsonFormatter />
       </div>
 
-      <div v-if="activeTab !== 'diff' && activeTab !== 'json'" class="sidebar">
+      <!-- Base64 全宽视图 -->
+      <div v-if="activeTab === 'base64'" class="diff-full-view">
+        <Base64Tool />
+      </div>
+
+      <!-- 时间戳全宽视图 -->
+      <div v-if="activeTab === 'timestamp'" class="diff-full-view">
+        <TimestampTool />
+      </div>
+
+      <!-- 哈希全宽视图 -->
+      <div v-if="activeTab === 'hash'" class="diff-full-view">
+        <HashTool />
+      </div>
+
+      <div v-if="activeTab === 'passwords' || activeTab === 'servers'" class="sidebar">
         <!-- 密码标签页 -->
         <template v-if="activeTab === 'passwords'">
           <el-button type="primary" size="large" class="add-button" @click="showAddDialog = true">
@@ -179,7 +212,7 @@
       </div>
 
       <!-- 右侧列表 -->
-      <div v-if="activeTab !== 'diff' && activeTab !== 'json'" class="content-list">
+      <div v-if="activeTab === 'passwords' || activeTab === 'servers'" class="content-list">
         <!-- 密码列表 -->
         <template v-if="activeTab === 'passwords'">
           <div v-if="filteredEntries.length === 0" class="empty-state">
@@ -236,6 +269,16 @@
               <div v-if="entry.notes" class="info-row">
                 <div class="info-label">备注</div>
                 <div class="info-value notes-value">{{ entry.notes }}</div>
+              </div>
+
+              <div v-if="entry.url" class="info-row">
+                <div class="info-label">URL</div>
+                <div class="info-value">
+                  <a :href="entry.url" target="_blank" class="url-link">{{ entry.url }}</a>
+                  <el-button type="text" size="small" @click="copyToClipboard(entry.url!, 'URL')" class="copy-btn">
+                    <template #icon><DocumentCopy /></template>
+                  </el-button>
+                </div>
               </div>
             </div>
 
@@ -352,6 +395,9 @@
         <el-form-item label="密码" prop="password">
           <el-input v-model="newEntry.password" type="password" show-password autocomplete="new-password" />
         </el-form-item>
+        <el-form-item label="URL">
+          <el-input v-model="newEntry.url" placeholder="https://example.com" autocapitalize="off" autocorrect="off" autocomplete="off" />
+        </el-form-item>
         <el-form-item label="分组">
           <el-select v-model="newEntry.group" placeholder="选择分组" clearable>
             <el-option
@@ -455,13 +501,16 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, MoreFilled, DocumentCopy, View, Hide, SwitchButton, Delete, CopyDocument, Sunny, Moon } from '@element-plus/icons-vue'
 import TextDiff from '@/components/TextDiff.vue'
 import JsonFormatter from '@/components/JsonFormatter.vue'
+import Base64Tool from '@/components/Base64Tool.vue'
+import TimestampTool from '@/components/TimestampTool.vue'
+import HashTool from '@/components/HashTool.vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 const themeStore = useThemeStore()
 
 // Tab state
-const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json'>('passwords')
+const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash'>('passwords')
 
 // Password state
 const searchQuery = ref('')
@@ -474,6 +523,7 @@ const newEntry = ref({
   title: '',
   username: '',
   password: '',
+  url: '',
   group: '',
   notes: '',
 })
@@ -690,6 +740,7 @@ const handleCommand = (command: string, entry: PasswordEntry) => {
       title: entry.title,
       username: entry.username,
       password: entry.password,
+      url: entry.url || '',
       group: entry.group || '',
       notes: entry.notes || '',
     }
@@ -795,6 +846,7 @@ const resetForm = () => {
     title: '',
     username: '',
     password: '',
+    url: '',
     group: '',
     notes: '',
   }
@@ -1139,6 +1191,17 @@ const formatDate = (date: string | number) => {
   &:hover {
     color: #764ba2;
   }
+}
+
+.url-link {
+  flex: 1;
+  color: #667eea;
+  font-size: 12px;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  &:hover { text-decoration: underline; }
 }
 
 .card-actions {
