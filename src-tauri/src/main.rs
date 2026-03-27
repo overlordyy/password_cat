@@ -5,8 +5,10 @@ use std::path::PathBuf;
 
 fn get_log_dir() -> PathBuf {
     let path = if cfg!(target_os = "windows") {
-        // Windows: C:\passwordcat\
-        PathBuf::from("C:\\passwordcat")
+        // Windows: %APPDATA%\PasswordCat\
+        dirs::data_dir()
+            .map(|h| h.join("PasswordCat"))
+            .unwrap_or_else(|| PathBuf::from("C:\\passwordcat"))
     } else if cfg!(target_os = "macos") {
         // macOS: ~/Library/Logs/PasswordCat/
         dirs::home_dir()
@@ -213,7 +215,10 @@ mod storage {
 
     fn get_vault_dir() -> PathBuf {
         let path = if cfg!(target_os = "windows") {
-            PathBuf::from("C:\\passwordcat")
+            // Windows: %APPDATA%\PasswordCat\
+            dirs::data_dir()
+                .map(|h| h.join("PasswordCat"))
+                .unwrap_or_else(|| PathBuf::from("C:\\passwordcat"))
         } else if cfg!(target_os = "macos") {
             dirs::home_dir()
                 .map(|h| h.join("Library/Application Support/PasswordCat"))
