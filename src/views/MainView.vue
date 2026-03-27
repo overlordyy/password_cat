@@ -18,6 +18,12 @@
         >
           🖥️ 服务器
         </el-button>
+        <el-button 
+          :type="activeTab === 'notes' ? 'primary' : 'default'"
+          @click="activeTab = 'notes'"
+        >
+          📝 笔记
+        </el-button>
       </div>
       <div class="navbar-right">
         <el-button type="info" size="small" @click="themeStore.toggleTheme">
@@ -98,7 +104,7 @@
         </template>
 
         <!-- 服务器标签页 -->
-        <template v-else>
+        <template v-else-if="activeTab === 'servers'">
           <el-button type="primary" size="large" class="add-button" @click="showServerDialog = true">
             <template #icon><Plus /></template>
             添加服务器
@@ -149,6 +155,65 @@
               >
                 <span>{{ group }}</span>
                 <el-button type="text" size="small" @click="handleDeleteServerGroup(group)">
+                  <Delete />
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 笔记标签页 -->
+        <template v-else-if="activeTab === 'notes'">
+          <el-button type="primary" size="large" class="add-button" @click="showNoteDialog = true">
+            <template #icon><Plus /></template>
+            添加笔记
+          </el-button>
+          
+          <el-input
+            v-model="noteSearchQuery"
+            placeholder="搜索笔记..."
+            clearable
+            size="large"
+            class="search-input"
+            prefix-icon="Search"
+          />
+
+          <!-- 笔记分组筛选 -->
+          <div class="group-filter">
+            <el-select v-model="selectedNoteGroup" placeholder="全部分组" clearable size="large">
+              <el-option label="全部分组" value="" />
+              <el-option
+                v-for="group in allNoteGroups"
+                :key="group"
+                :label="group"
+                :value="group"
+              />
+            </el-select>
+          </div>
+
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-number">{{ notes.length }}</div>
+              <div class="stat-label">笔记总数</div>
+            </div>
+          </div>
+
+          <!-- 笔记分组管理 -->
+          <div class="group-management">
+            <div class="group-header">
+              <span class="group-title">📝 笔记分组</span>
+              <el-button type="text" size="small" @click="showNoteGroupDialog = true">
+                <Plus />
+              </el-button>
+            </div>
+            <div class="group-list">
+              <div
+                v-for="group in allNoteGroups"
+                :key="group"
+                class="group-item"
+              >
+                <span>{{ group }}</span>
+                <el-button type="text" size="small" @click="handleDeleteNoteGroup(group)">
                   <Delete />
                 </el-button>
               </div>
@@ -316,6 +381,43 @@
             </div>
           </div>
         </template>
+
+        <!-- 笔记列表 -->
+        <template v-if="activeTab === 'notes'">
+          <div v-if="filteredNotes.length === 0" class="empty-state">
+            <div class="empty-icon">📝</div>
+            <p>暂无笔记记录</p>
+          </div>
+
+          <div v-for="note in filteredNotes" :key="note.id" class="note-card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="note-icon">📝</span>
+                <span class="note-title-text">{{ note.title }}</span>
+                <el-tag v-if="note.group" size="small" type="info">{{ note.group }}</el-tag>
+              </div>
+              <el-dropdown @command="handleNoteCommand($event, note)">
+                <el-button type="text" size="small">
+                  <template #icon><MoreFilled /></template>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+
+            <div class="card-content">
+              <div class="note-content">{{ note.content }}</div>
+            </div>
+
+            <div class="card-footer">
+              <span class="create-time">{{ formatDate(note.createdAt) }}</span>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -422,12 +524,55 @@
         <el-button type="primary" @click="handleAddServerGroup">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 添加/编辑笔记对话框 -->
+    <el-dialog v-model="showNoteDialog" :title="editingNote ? '编辑笔记' : '添加笔记'" width="500px" @close="resetNoteForm">
+      <el-form :model="newNote" :rules="noteFormRules" ref="noteFormRef" label-width="80px">
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="newNote.title" placeholder="笔记标题" />
+        </el-form-item>
+        <el-form-item label="内容" prop="content">
+          <el-input v-model="newNote.content" type="textarea" rows="10" placeholder="笔记内容..." />
+        </el-form-item>
+        <el-form-item label="分组">
+          <el-select v-model="newNote.group" placeholder="选择分组" clearable>
+            <el-option
+              v-for="group in allNoteGroups"
+              :key="group"
+              :label="group"
+              :value="group"
+            />
+            <el-option label="+ 新建分组" value="__new_group__" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="newNote.group === '__new_group__'" label="新分组">
+          <el-input v-model="newNoteGroupName" placeholder="输入分组名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showNoteDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleAddNote">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 新建笔记分组对话框 -->
+    <el-dialog v-model="showNoteGroupDialog" title="新建笔记分组" width="400px">
+      <el-form @submit.prevent="handleAddNoteGroup">
+        <el-form-item label="分组名称">
+          <el-input v-model="newNoteGroupName" placeholder="输入分组名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showNoteGroupDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleAddNoteGroup">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useVaultStore, type PasswordEntry, type ServerEntry } from '@/stores/vault'
+import { useVaultStore, type PasswordEntry, type ServerEntry, type NoteEntry } from '@/stores/vault'
 import { useThemeStore } from '@/stores/theme'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -438,7 +583,7 @@ const vaultStore = useVaultStore()
 const themeStore = useThemeStore()
 
 // Tab state
-const activeTab = ref<'passwords' | 'servers'>('passwords')
+const activeTab = ref<'passwords' | 'servers' | 'notes'>('passwords')
 
 // Password state
 const searchQuery = ref('')
@@ -490,11 +635,33 @@ const serverFormRules = {
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
+// Note state
+const noteSearchQuery = ref('')
+const selectedNoteGroup = ref('')
+const showNoteDialog = ref(false)
+const editingNote = ref<NoteEntry | null>(null)
+
+const newNote = ref({
+  title: '',
+  content: '',
+  group: '',
+})
+
+const newNoteGroupName = ref('')
+const showNoteGroupDialog = ref(false)
+
+const noteFormRules = {
+  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+  content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
+}
+
 // Computed
 const entries = computed(() => vaultStore.entries)
 const servers = computed(() => vaultStore.servers)
+const notes = computed(() => vaultStore.notes)
 const allPasswordGroups = computed(() => vaultStore.allPasswordGroups)
 const allServerGroups = computed(() => vaultStore.allServerGroups)
+const allNoteGroups = computed(() => vaultStore.allNoteGroups)
 
 const filteredEntries = computed(() => {
   let result = entries.value
@@ -526,6 +693,22 @@ const filteredServers = computed(() => {
   }
   if (selectedServerGroup.value) {
     result = result.filter(server => server.group === selectedServerGroup.value)
+  }
+  return result
+})
+
+const filteredNotes = computed(() => {
+  let result = notes.value
+  if (noteSearchQuery.value) {
+    const query = noteSearchQuery.value.toLowerCase()
+    result = result.filter(
+      note =>
+        note.title.toLowerCase().includes(query) ||
+        note.content.toLowerCase().includes(query)
+    )
+  }
+  if (selectedNoteGroup.value) {
+    result = result.filter(note => note.group === selectedNoteGroup.value)
   }
   return result
 })
@@ -762,6 +945,92 @@ const handleDeleteServerGroup = (group: string) => {
     .catch(() => {})
 }
 
+// Note methods
+const handleAddNote = async () => {
+  if (!newNote.value.title || !newNote.value.content) {
+    ElMessage.error('请填写必填项')
+    return
+  }
+
+  let group = newNote.value.group
+  if (group === '__new_group__') {
+    if (!newNoteGroupName.value.trim()) {
+      ElMessage.error('请输入分组名称')
+      return
+    }
+    group = newNoteGroupName.value.trim()
+    vaultStore.addNoteGroup(group)
+  }
+
+  try {
+    if (editingNote.value) {
+      await vaultStore.updateNote(editingNote.value.id, {
+        ...newNote.value,
+        group: group || undefined,
+      })
+      ElMessage.success('笔记已更新')
+    } else {
+      await vaultStore.addNote({
+        ...newNote.value,
+        group: group || undefined,
+      })
+      ElMessage.success('笔记已添加')
+    }
+    showNoteDialog.value = false
+    resetNoteForm()
+  } catch (error) {
+    ElMessage.error(`操作失败: ${error}`)
+  }
+}
+
+const handleNoteCommand = (command: string, note: NoteEntry) => {
+  if (command === 'edit') {
+    editingNote.value = note
+    newNote.value = {
+      title: note.title,
+      content: note.content,
+      group: note.group || '',
+    }
+    showNoteDialog.value = true
+  } else if (command === 'delete') {
+    ElMessageBox.confirm('确定删除此笔记吗？', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(async () => {
+        await vaultStore.deleteNote(note.id)
+        ElMessage.success('已删除')
+      })
+      .catch(() => {})
+  }
+}
+
+const handleAddNoteGroup = () => {
+  if (!newNoteGroupName.value.trim()) {
+    ElMessage.error('请输入分组名称')
+    return
+  }
+  vaultStore.addNoteGroup(newNoteGroupName.value.trim())
+  ElMessage.success('笔记分组已创建')
+  showNoteGroupDialog.value = false
+  newNoteGroupName.value = ''
+}
+
+const handleDeleteNoteGroup = (group: string) => {
+  ElMessageBox.confirm(`确定删除笔记分组"${group}"吗？该分组下的所有笔记也会被删除。`, '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(async () => {
+      await vaultStore.deleteNoteGroup(group)
+      ElMessage.success('分组已删除')
+      if (selectedNoteGroup.value === group) selectedNoteGroup.value = ''
+    })
+    .catch(() => {})
+}
+
 const handleLogout = () => {
   vaultStore.lockVault()
   router.push('/unlock')
@@ -791,6 +1060,16 @@ const resetServerForm = () => {
   }
   newServerGroupName.value = ''
   editingServer.value = null
+}
+
+const resetNoteForm = () => {
+  newNote.value = {
+    title: '',
+    content: '',
+    group: '',
+  }
+  newNoteGroupName.value = ''
+  editingNote.value = null
 }
 
 const formatDate = (date: string | number) => {
@@ -1005,7 +1284,8 @@ const formatDate = (date: string | number) => {
 }
 
 .password-card,
-.server-card {
+.server-card,
+.note-card {
   background: var(--bg-card);
   border-radius: 8px;
   padding: 12px;
@@ -1015,6 +1295,17 @@ const formatDate = (date: string | number) => {
   &:hover {
     box-shadow: var(--shadow-card-hover);
   }
+}
+
+.note-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-height: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-header {

@@ -27,6 +27,15 @@ export interface ServerEntry {
   updatedAt: number
 }
 
+export interface NoteEntry {
+  id: string
+  title: string
+  content: string
+  group?: string
+  createdAt: number
+  updatedAt: number
+}
+
 export interface VaultData {
   salt: string
   encryptedData: string
@@ -39,15 +48,19 @@ export const useVaultStore = defineStore('vault', () => {
   const salt = ref('')
   const entries = ref<PasswordEntry[]>([])
   const servers = ref<ServerEntry[]>([])
+  const notes = ref<NoteEntry[]>([])
   const passwordGroups = ref<string[]>([])
   const serverGroups = ref<string[]>([])
+  const noteGroups = ref<string[]>([])
   const vaultExists = ref(false)
 
   // Getters
   const entryCount = computed(() => entries.value.length)
   const serverCount = computed(() => servers.value.length)
+  const noteCount = computed(() => notes.value.length)
   const allPasswordGroups = computed(() => passwordGroups.value.sort())
   const allServerGroups = computed(() => serverGroups.value.sort())
+  const allNoteGroups = computed(() => noteGroups.value.sort())
   
   const searchEntries = (query: string) => {
     if (!query) return entries.value
@@ -69,6 +82,16 @@ export const useVaultStore = defineStore('vault', () => {
       server.domain?.toLowerCase().includes(lowerQuery) ||
       server.username.toLowerCase().includes(lowerQuery) ||
       server.group?.toLowerCase().includes(lowerQuery)
+    )
+  }
+
+  const searchNotes = (query: string) => {
+    if (!query) return notes.value
+    const lowerQuery = query.toLowerCase()
+    return notes.value.filter(note =>
+      note.title.toLowerCase().includes(lowerQuery) ||
+      note.content.toLowerCase().includes(lowerQuery) ||
+      note.group?.toLowerCase().includes(lowerQuery)
     )
   }
 
@@ -94,7 +117,7 @@ export const useVaultStore = defineStore('vault', () => {
     salt.value = generatedSalt
     
     // 初始化空数据
-    const initialData = JSON.stringify({ entries: [], servers: [], passwordGroups: [], serverGroups: [] })
+    const initialData = JSON.stringify({ entries: [], servers: [], notes: [], passwordGroups: [], serverGroups: [], noteGroups: [] })
     const encrypted = await invoke<string>('encrypt_data', {
       data: initialData,
       key: masterKey.value,
@@ -112,8 +135,10 @@ export const useVaultStore = defineStore('vault', () => {
     
     entries.value = []
     servers.value = []
+    notes.value = []
     passwordGroups.value = []
     serverGroups.value = []
+    noteGroups.value = []
     isUnlocked.value = true
     vaultExists.value = true
   }
@@ -139,8 +164,10 @@ export const useVaultStore = defineStore('vault', () => {
       const data = JSON.parse(decrypted)
       entries.value = data.entries || []
       servers.value = data.servers || []
+      notes.value = data.notes || []
       passwordGroups.value = data.passwordGroups || []
       serverGroups.value = data.serverGroups || []
+      noteGroups.value = data.noteGroups || []
       masterKey.value = key
       salt.value = vaultData.salt
       isUnlocked.value = true
@@ -155,8 +182,10 @@ export const useVaultStore = defineStore('vault', () => {
     masterKey.value = ''
     entries.value = []
     servers.value = []
+    notes.value = []
     passwordGroups.value = []
     serverGroups.value = []
+    noteGroups.value = []
   }
 
   const saveEntries = async () => {
@@ -167,8 +196,10 @@ export const useVaultStore = defineStore('vault', () => {
     const data = JSON.stringify({ 
       entries: entries.value, 
       servers: servers.value, 
+      notes: notes.value,
       passwordGroups: passwordGroups.value, 
-      serverGroups: serverGroups.value 
+      serverGroups: serverGroups.value,
+      noteGroups: noteGroups.value
     })
     const encrypted = await invoke<string>('encrypt_data', {
       data,
@@ -290,20 +321,77 @@ export const useVaultStore = defineStore('vault', () => {
     await saveEntries()
   }
 
+  // Note management
+  const addNote = async (note: Omit<NoteEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newNote: NoteEntry = {
+      ...note,
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+    
+    notes.value.push(newNote)
+    if (note.group && !noteGroups.value.includes(note.group)) {
+      noteGroups.value.push(note.group)
+    }
+    await saveEntries()
+    return newNote
+  }
+
+  const updateNote = async (id: string, updates: Partial<NoteEntry>) => {
+    const index = notes.value.findIndex(n => n.id === id)
+    if (index === -1) throw new Error('Note not found')
+    
+    notes.value[index] = {
+      ...notes.value[index],
+      ...updates,
+      updatedAt: Date.now(),
+    }
+    
+    if (updates.group && !noteGroups.value.includes(updates.group)) {
+      noteGroups.value.push(updates.group)
+    }
+    
+    await saveEntries()
+  }
+
+  const deleteNote = async (id: string) => {
+    notes.value = notes.value.filter(n => n.id !== id)
+    await saveEntries()
+  }
+
+  const addNoteGroup = (groupName: string) => {
+    if (!noteGroups.value.includes(groupName)) {
+      noteGroups.value.push(groupName)
+      noteGroups.value.sort()
+    }
+  }
+
+  const deleteNoteGroup = async (groupName: string) => {
+    notes.value = notes.value.filter(n => n.group !== groupName)
+    noteGroups.value = noteGroups.value.filter(g => g !== groupName)
+    await saveEntries()
+  }
+
   return {
     isUnlocked,
     masterKey,
     entries,
     servers,
+    notes,
     passwordGroups,
     serverGroups,
+    noteGroups,
     vaultExists,
     entryCount,
     serverCount,
+    noteCount,
     allPasswordGroups,
     allServerGroups,
+    allNoteGroups,
     searchEntries,
     searchServers,
+    searchNotes,
     checkVaultExists,
     createVault,
     unlockVault,
@@ -320,5 +408,10 @@ export const useVaultStore = defineStore('vault', () => {
     addServerGroup,
     deletePasswordGroup,
     deleteServerGroup,
+    addNote,
+    updateNote,
+    deleteNote,
+    addNoteGroup,
+    deleteNoteGroup,
   }
 })
