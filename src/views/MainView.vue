@@ -323,13 +323,13 @@
     <el-dialog v-model="showAddDialog" :title="editingEntry ? '编辑密码' : '添加密码'" width="500px" @close="resetForm">
       <el-form :model="newEntry" :rules="formRules" ref="formRef" label-width="80px">
         <el-form-item label="平台" prop="title">
-          <el-input v-model="newEntry.title" placeholder="如: GitHub, Gmail" />
+          <el-input v-model="newEntry.title" placeholder="如: GitHub, Gmail" autocapitalize="off" autocorrect="off" />
         </el-form-item>
         <el-form-item label="账户" prop="username">
-          <el-input v-model="newEntry.username" placeholder="邮箱或用户名" />
+          <el-input v-model="newEntry.username" placeholder="邮箱或用户名" autocapitalize="off" autocorrect="off" autocomplete="off" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="newEntry.password" type="password" show-password />
+          <el-input v-model="newEntry.password" type="password" show-password autocomplete="new-password" />
         </el-form-item>
         <el-form-item label="分组">
           <el-select v-model="newEntry.group" placeholder="选择分组" clearable>
@@ -359,19 +359,19 @@
     <el-dialog v-model="showServerDialog" :title="editingServer ? '编辑服务器' : '添加服务器'" width="500px" @close="resetServerForm">
       <el-form :model="newServer" :rules="serverFormRules" ref="serverFormRef" label-width="80px">
         <el-form-item label="名称" prop="name">
-          <el-input v-model="newServer.name" placeholder="如: 生产环境Web服务器" />
+          <el-input v-model="newServer.name" placeholder="如: 生产环境Web服务器" autocapitalize="off" autocorrect="off" />
         </el-form-item>
         <el-form-item label="IP地址" prop="ip">
-          <el-input v-model="newServer.ip" placeholder="如: 192.168.1.100" />
+          <el-input v-model="newServer.ip" placeholder="如: 192.168.1.100" autocapitalize="off" autocorrect="off" autocomplete="off" />
         </el-form-item>
         <el-form-item label="域名">
-          <el-input v-model="newServer.domain" placeholder="如: example.com" />
+          <el-input v-model="newServer.domain" placeholder="如: example.com" autocapitalize="off" autocorrect="off" autocomplete="off" />
         </el-form-item>
         <el-form-item label="账户" prop="username">
-          <el-input v-model="newServer.username" placeholder="用户名" />
+          <el-input v-model="newServer.username" placeholder="用户名" autocapitalize="off" autocorrect="off" autocomplete="off" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="newServer.password" type="password" show-password />
+          <el-input v-model="newServer.password" type="password" show-password autocomplete="new-password" />
         </el-form-item>
         <el-form-item label="分组">
           <el-select v-model="newServer.group" placeholder="选择分组" clearable>
