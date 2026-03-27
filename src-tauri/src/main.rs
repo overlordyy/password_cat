@@ -1,3 +1,8 @@
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
+
 use log::{info, error};
 use simplelog::{CombinedLogger, WriteLogger, TermLogger, Config, LevelFilter, TerminalMode, ColorChoice};
 use std::fs::OpenOptions;
@@ -39,10 +44,18 @@ fn init_logging() {
         .ok();
     
     if let Some(file) = log_file {
-        CombinedLogger::init(vec![
-            TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
-            WriteLogger::new(LevelFilter::Info, Config::default(), file),
-        ]).ok();
+        #[cfg(all(not(debug_assertions), target_os = "windows"))]
+        {
+            // Release build on Windows: only write to file, no terminal (no console window)
+            WriteLogger::init(LevelFilter::Info, Config::default(), file).ok();
+        }
+        #[cfg(not(all(not(debug_assertions), target_os = "windows")))]
+        {
+            CombinedLogger::init(vec![
+                TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
+                WriteLogger::new(LevelFilter::Info, Config::default(), file),
+            ]).ok();
+        }
     }
     
     info!("PasswordCat started! Log file: {:?}", log_file_path);
