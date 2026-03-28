@@ -1,53 +1,10 @@
 <template>
   <div class="main-container">
-    <!-- 顶部导航栏 -->
+    <!-- 顶部栏：只保留 Logo 和右侧操作 -->
     <div class="navbar">
       <div class="navbar-left">
-        <h1 class="navbar-title">🔐 PasswordCat</h1>
-      </div>
-      <div class="navbar-tabs">
-        <el-button 
-          :type="activeTab === 'passwords' ? 'primary' : 'default'"
-          @click="activeTab = 'passwords'"
-        >
-          🔑 密码
-        </el-button>
-        <el-button 
-          :type="activeTab === 'servers' ? 'primary' : 'default'"
-          @click="activeTab = 'servers'"
-        >
-          🖥️ 服务器
-        </el-button>
-        <el-button
-          :type="activeTab === 'diff' ? 'primary' : 'default'"
-          @click="activeTab = 'diff'"
-        >
-          📄 文本对比
-        </el-button>
-        <el-button
-          :type="activeTab === 'json' ? 'primary' : 'default'"
-          @click="activeTab = 'json'"
-        >
-          🔧 JSON格式化
-        </el-button>
-        <el-button
-          :type="activeTab === 'base64' ? 'primary' : 'default'"
-          @click="activeTab = 'base64'"
-        >
-          🔤 Base64
-        </el-button>
-        <el-button
-          :type="activeTab === 'timestamp' ? 'primary' : 'default'"
-          @click="activeTab = 'timestamp'"
-        >
-          🕐 时间戳
-        </el-button>
-        <el-button
-          :type="activeTab === 'hash' ? 'primary' : 'default'"
-          @click="activeTab = 'hash'"
-        >
-          #️⃣ 哈希
-        </el-button>
+        <img src="/logo.png" class="navbar-logo" alt="PasswordCat" />
+        <h1 class="navbar-title">PasswordCat</h1>
       </div>
       <div class="navbar-right">
         <el-button type="info" size="small" @click="themeStore.toggleTheme">
@@ -64,34 +21,96 @@
       </div>
     </div>
 
-    <!-- 主容器 -->
-    <div class="content-wrapper" :class="{ 'diff-mode': activeTab === 'diff' || activeTab === 'json' || activeTab === 'base64' || activeTab === 'timestamp' || activeTab === 'hash' }">
-      <!-- 文本对比全宽视图 -->
-      <div v-if="activeTab === 'diff'" class="diff-full-view">
-        <TextDiff />
+    <!-- 主体：左侧导航 + 右侧内容 -->
+    <div class="body-wrapper">
+
+      <!-- 左侧导航栏 -->
+      <div class="nav-sidebar">
+        <div class="nav-group-title">管理</div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'passwords' }"
+          @click="activeTab = 'passwords'"
+        >
+          <img src="@/assets/icons/password.svg" class="nav-pixel-icon" />
+          <span class="nav-label">密码</span>
+        </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'servers' }"
+          @click="activeTab = 'servers'"
+        >
+          <img src="@/assets/icons/server.svg" class="nav-pixel-icon" />
+          <span class="nav-label">服务器</span>
+        </div>
+
+        <div class="nav-divider"></div>
+        <div class="nav-group-title">工具</div>
+
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'diff' }"
+          @click="activeTab = 'diff'"
+        >
+          <img src="@/assets/icons/diff.svg" class="nav-pixel-icon" />
+          <span class="nav-label">文本对比</span>
+        </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'json' }"
+          @click="activeTab = 'json'"
+        >
+          <img src="@/assets/icons/json.svg" class="nav-pixel-icon" />
+          <span class="nav-label">JSON格式化</span>
+        </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'sql' }"
+          @click="activeTab = 'sql'"
+        >
+          <img src="@/assets/icons/sql.svg" class="nav-pixel-icon" />
+          <span class="nav-label">SQL格式化</span>
+        </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'base64' }"
+          @click="activeTab = 'base64'"
+        >
+          <img src="@/assets/icons/base64.svg" class="nav-pixel-icon" />
+          <span class="nav-label">Base64</span>
+        </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'timestamp' }"
+          @click="activeTab = 'timestamp'"
+        >
+          <img src="@/assets/icons/timestamp.svg" class="nav-pixel-icon" />
+          <span class="nav-label">时间戳</span>
+        </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'hash' }"
+          @click="activeTab = 'hash'"
+        >
+          <img src="@/assets/icons/hash.svg" class="nav-pixel-icon" />
+          <span class="nav-label">哈希计算</span>
+        </div>
       </div>
 
-      <!-- JSON 格式化全宽视图 -->
-      <div v-if="activeTab === 'json'" class="diff-full-view">
-        <JsonFormatter />
-      </div>
+      <!-- 右侧内容区 -->
+      <div class="main-content">
 
-      <!-- Base64 全宽视图 -->
-      <div v-if="activeTab === 'base64'" class="diff-full-view">
-        <Base64Tool />
-      </div>
+        <!-- 工具类：全宽 -->
+        <div v-if="activeTab === 'diff'" class="tool-view"><TextDiff /></div>
+        <div v-else-if="activeTab === 'json'" class="tool-view"><JsonFormatter /></div>
+        <div v-else-if="activeTab === 'sql'" class="tool-view"><SqlFormatter /></div>
+        <div v-else-if="activeTab === 'base64'" class="tool-view"><Base64Tool /></div>
+        <div v-else-if="activeTab === 'timestamp'" class="tool-view"><TimestampTool /></div>
+        <div v-else-if="activeTab === 'hash'" class="tool-view"><HashTool /></div>
 
-      <!-- 时间戳全宽视图 -->
-      <div v-if="activeTab === 'timestamp'" class="diff-full-view">
-        <TimestampTool />
-      </div>
-
-      <!-- 哈希全宽视图 -->
-      <div v-if="activeTab === 'hash'" class="diff-full-view">
-        <HashTool />
-      </div>
-
-      <div v-if="activeTab === 'passwords' || activeTab === 'servers'" class="sidebar">
+        <!-- 密码 / 服务器：左 sidebar + 右列表 -->
+        <template v-else>
+          <div class="sidebar">
         <!-- 密码标签页 -->
         <template v-if="activeTab === 'passwords'">
           <el-button type="primary" size="large" class="add-button" @click="showAddDialog = true">
@@ -212,7 +231,7 @@
       </div>
 
       <!-- 右侧列表 -->
-      <div v-if="activeTab === 'passwords' || activeTab === 'servers'" class="content-list">
+      <div class="content-list">
         <!-- 密码列表 -->
         <template v-if="activeTab === 'passwords'">
           <div v-if="filteredEntries.length === 0" class="empty-state">
@@ -381,7 +400,13 @@
           </div>
         </template>
       </div>
+      <!-- /content-list -->
+      </template>
+      <!-- /template v-else (passwords/servers) -->
     </div>
+    <!-- /main-content -->
+  </div>
+  <!-- /body-wrapper -->
 
     <!-- 添加/编辑密码对话框 -->
     <el-dialog v-model="showAddDialog" :title="editingEntry ? '编辑密码' : '添加密码'" width="500px" @close="resetForm">
@@ -504,13 +529,14 @@ import JsonFormatter from '@/components/JsonFormatter.vue'
 import Base64Tool from '@/components/Base64Tool.vue'
 import TimestampTool from '@/components/TimestampTool.vue'
 import HashTool from '@/components/HashTool.vue'
+import SqlFormatter from '@/components/SqlFormatter.vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 const themeStore = useThemeStore()
 
 // Tab state
-const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash'>('passwords')
+const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash' | 'sql'>('passwords')
 
 // Password state
 const searchQuery = ref('')
@@ -882,6 +908,7 @@ const formatDate = (date: string | number) => {
   transition: background 0.3s;
 }
 
+/* ── 顶部栏 ── */
 .navbar {
   height: 50px;
   background: var(--bg-navbar);
@@ -890,64 +917,124 @@ const formatDate = (date: string | number) => {
   align-items: center;
   padding: 0 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.navbar-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  image-rendering: pixelated;
+  object-fit: cover;
 }
 
 .navbar-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-white);
   margin: 0;
 }
 
-.navbar-tabs {
-  display: flex;
-  gap: 8px;
-  
-  .el-button {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 13px;
-    padding: 6px 12px;
-    
-    &.el-button--primary {
-      background: white;
-      color: #667eea;
-    }
-  }
-}
+.navbar-right { display: flex; gap: 10px; }
 
-.navbar-right {
-  display: flex;
-  gap: 10px;
-}
-
-.content-wrapper {
+/* ── 主体布局 ── */
+.body-wrapper {
   flex: 1;
   display: flex;
-  gap: 16px;
-  padding: 16px;
   overflow: hidden;
+}
 
-  &.diff-mode {
-    padding: 16px;
+/* ── 左侧导航 ── */
+.nav-sidebar {
+  width: 150px;
+  flex-shrink: 0;
+  background: var(--bg-navbar);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255,255,255,0.08);
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+}
+
+.nav-group-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 8px 4px;
+}
+
+.nav-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 6px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s;
+  color: rgba(255,255,255,0.65);
+
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.9);
+  }
+
+  &.active {
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    font-weight: 600;
   }
 }
 
-.diff-full-view {
+.nav-pixel-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+.nav-label { font-size: 12px; white-space: nowrap; }
+
+/* ── 右侧内容区 ── */
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  padding: 16px;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* 工具类全屏视图 */
+.tool-view {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
+/* ── 密码/服务器布局：sidebar + 列表 ── */
 .sidebar {
-  width: 240px;
+  width: 220px;
+  flex-shrink: 0;
   background: var(--bg-sidebar);
   border-radius: 12px;
   padding: 16px;
@@ -955,6 +1042,24 @@ const formatDate = (date: string | number) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
+}
+
+.content-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    &:hover { background: rgba(0, 0, 0, 0.3); }
+  }
 }
 
 .add-button {
@@ -964,7 +1069,6 @@ const formatDate = (date: string | number) => {
   border: none;
   font-weight: 600;
   font-size: 14px;
-
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
@@ -975,23 +1079,15 @@ const formatDate = (date: string | number) => {
   :deep(.el-input__wrapper) {
     background: var(--bg-input);
     border: 2px solid var(--border-color);
-
-    &:hover {
-      border-color: var(--border-hover);
-    }
+    &:hover { border-color: var(--border-hover); }
   }
 }
 
 .group-filter {
-  :deep(.el-select) {
-    width: 100%;
-  }
+  :deep(.el-select) { width: 100%; }
 }
 
-.stats {
-  display: flex;
-  gap: 8px;
-}
+.stats { display: flex; gap: 8px; }
 
 .stat-item {
   flex: 1;
@@ -1002,16 +1098,8 @@ const formatDate = (date: string | number) => {
   color: var(--text-white);
 }
 
-.stat-number {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.stat-label {
-  font-size: 11px;
-  opacity: 0.8;
-  margin-top: 2px;
-}
+.stat-number { font-size: 18px; font-weight: 700; }
+.stat-label { font-size: 11px; opacity: 0.8; margin-top: 2px; }
 
 .group-management {
   margin-top: auto;
@@ -1026,11 +1114,7 @@ const formatDate = (date: string | number) => {
   margin-bottom: 8px;
 }
 
-.group-title {
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
+.group-title { font-weight: 600; color: var(--text-secondary); font-size: 13px; }
 
 .group-list {
   display: flex;
@@ -1051,31 +1135,6 @@ const formatDate = (date: string | number) => {
   color: var(--text-primary);
 }
 
-.content-list {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.3);
-    }
-  }
-}
-
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1083,11 +1142,7 @@ const formatDate = (date: string | number) => {
   justify-content: center;
   height: 100%;
   color: #909399;
-
-  .empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-  }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; }
 }
 
 .password-card,
@@ -1097,10 +1152,7 @@ const formatDate = (date: string | number) => {
   padding: 12px;
   box-shadow: var(--shadow-card);
   transition: all 0.3s;
-
-  &:hover {
-    box-shadow: var(--shadow-card-hover);
-  }
+  &:hover { box-shadow: var(--shadow-card-hover); }
 }
 
 .card-header {
@@ -1120,21 +1172,10 @@ const formatDate = (date: string | number) => {
   color: var(--text-primary);
 }
 
-.platform-icon,
-.server-icon {
-  font-size: 16px;
-}
+.platform-icon, .server-icon { font-size: 16px; }
+.platform-name, .server-name { font-size: 14px; }
 
-.platform-name,
-.server-name {
-  font-size: 14px;
-}
-
-.card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.card-content { display: flex; flex-direction: column; gap: 8px; }
 
 .info-row {
   display: flex;
@@ -1179,18 +1220,11 @@ const formatDate = (date: string | number) => {
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
-.password-text.revealed {
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
 .copy-btn,
 .reveal-btn {
   color: #667eea;
   padding: 0 4px;
-
-  &:hover {
-    color: #764ba2;
-  }
+  &:hover { color: #764ba2; }
 }
 
 .url-link {
@@ -1220,7 +1254,5 @@ const formatDate = (date: string | number) => {
   color: var(--text-muted);
 }
 
-.create-time {
-  display: block;
-}
+.create-time { display: block; }
 </style>

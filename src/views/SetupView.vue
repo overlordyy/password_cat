@@ -5,7 +5,9 @@
       <div class="top-decoration"></div>
       
       <div class="logo-section">
-        <div class="logo-icon">🔐</div>
+        <div class="logo-icon">
+          <img src="/logo.png" alt="PasswordCat" class="logo-img" />
+        </div>
         <h1 class="logo-title">PasswordCat</h1>
         <p class="logo-subtitle">智能密码管理器</p>
       </div>
@@ -196,9 +198,17 @@ const handleSetup = async () => {
 }
 
 .logo-icon {
-  font-size: 40px;
   margin-bottom: 12px;
   animation: float 3s ease-in-out infinite;
+}
+
+.logo-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  image-rendering: pixelated;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 
 @keyframes float {

@@ -1,0 +1,31 @@
+<!-- 时间戳：时钟 16x16 像素风 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- 时钟外框 -->
+  <rect x="3" y="2" width="10" height="1" fill="#c0c8e0"/>
+  <rect x="2" y="3" width="12" height="9" fill="#c0c8e0"/>
+  <rect x="3" y="12" width="10" height="1" fill="#c0c8e0"/>
+  <!-- 表盘 -->
+  <rect x="3" y="3" width="10" height="9" fill="#1a2040"/>
+  <!-- 12点 -->
+  <rect x="7" y="4" width="2" height="1" fill="#ffffff"/>
+  <!-- 3点 -->
+  <rect x="11" y="7" width="1" height="1" fill="#ffffff"/>
+  <!-- 6点 -->
+  <rect x="7" y="10" width="2" height="1" fill="#ffffff"/>
+  <!-- 9点 -->
+  <rect x="4" y="7" width="1" height="1" fill="#ffffff"/>
+  <!-- 时针（指向10点方向） -->
+  <rect x="7" y="5" width="1" height="3" fill="#ffffff"/>
+  <rect x="6" y="6" width="2" height="1" fill="#ffffff"/>
+  <!-- 分针（指向2点方向） -->
+  <rect x="8" y="5" width="2" height="1" fill="#ff6060"/>
+  <rect x="8" y="6" width="1" height="2" fill="#ff6060"/>
+  <!-- 中心点 -->
+  <rect x="7" y="7" width="2" height="2" fill="#f0c040"/>
+  <!-- 顶部旋钮 -->
+  <rect x="7" y="1" width="2" height="1" fill="#8090b0"/>
+  <!-- 底部数字暗示 -->
+  <rect x="2" y="13" width="4" height="1" fill="#a0b0c0" opacity="0.7"/>
+  <rect x="7" y="13" width="1" height="1" fill="#a0b0c0"/>
+  <rect x="9" y="13" width="4" height="1" fill="#a0b0c0" opacity="0.7"/>
+</svg>

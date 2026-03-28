@@ -1,0 +1,33 @@
+<!-- JSON格式化：花括号+层级 16x16 像素风 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- 背景 -->
+  <rect x="0" y="0" width="16" height="16" fill="#1e2a3a"/>
+  <!-- 左花括号 { -->
+  <rect x="2" y="2" width="2" height="1" fill="#e8a020"/>
+  <rect x="1" y="3" width="1" height="2" fill="#e8a020"/>
+  <rect x="1" y="7" width="1" height="2" fill="#e8a020"/>
+  <rect x="2" y="9" width="2" height="1" fill="#e8a020"/>
+  <!-- 右花括号 } -->
+  <rect x="12" y="2" width="2" height="1" fill="#e8a020"/>
+  <rect x="14" y="3" width="1" height="2" fill="#e8a020"/>
+  <rect x="14" y="7" width="1" height="2" fill="#e8a020"/>
+  <rect x="12" y="9" width="2" height="1" fill="#e8a020"/>
+  <!-- key: value 内容 -->
+  <rect x="4" y="3" width="3" height="1" fill="#88c8ff"/><!-- key -->
+  <rect x="7" y="3" width="1" height="1" fill="#ffffff"/><!-- : -->
+  <rect x="8" y="3" width="4" height="1" fill="#a0e880"/><!-- value -->
+  <!-- 缩进层级 -->
+  <rect x="5" y="5" width="2" height="1" fill="#88c8ff"/>
+  <rect x="7" y="5" width="1" height="1" fill="#ffffff"/>
+  <rect x="8" y="5" width="3" height="1" fill="#ff9090"/>
+  <rect x="4" y="7" width="3" height="1" fill="#88c8ff"/>
+  <rect x="7" y="7" width="1" height="1" fill="#ffffff"/>
+  <rect x="8" y="7" width="4" height="1" fill="#a0e880"/>
+  <!-- 竖线连接 -->
+  <rect x="4" y="4" width="1" height="4" fill="#4a6080" opacity="0.6"/>
+  <!-- 底部省略号 -->
+  <rect x="5"  y="11" width="1" height="1" fill="#6080a0"/>
+  <rect x="7"  y="11" width="1" height="1" fill="#6080a0"/>
+  <rect x="9"  y="11" width="1" height="1" fill="#6080a0"/>
+  <rect x="11" y="11" width="1" height="1" fill="#6080a0"/>
+</svg>

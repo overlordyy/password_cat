@@ -16,7 +16,9 @@
       <div class="top-decoration"></div>
 
       <div class="logo-section">
-        <div class="logo-icon">🔐</div>
+        <div class="logo-icon">
+          <img src="/logo.png" alt="PasswordCat" class="logo-img" />
+        </div>
         <h1 class="logo-title">PasswordCat</h1>
         <p class="logo-subtitle">输入主密码解锁</p>
       </div>
@@ -166,9 +168,17 @@ const handleUnlock = async () => {
 }
 
 .logo-icon {
-  font-size: 48px;
   margin-bottom: 16px;
   animation: float 3s ease-in-out infinite;
+}
+
+.logo-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  image-rendering: pixelated;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 
 @keyframes float {
