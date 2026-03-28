@@ -37,7 +37,7 @@
   },
   "app": {
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; connect-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'"
     },
     "windows": [
       {
