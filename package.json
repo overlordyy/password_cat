@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri-dev": "tauri dev",
-    "tauri-build": "tauri build",
-    "tauri-build-mac": "node bump-version.cjs && npm run tauri -- build --target aarch64-apple-darwin && node scripts/sign-mac.cjs"
+    "tauri-build": "tauri build"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
