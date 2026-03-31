@@ -7,6 +7,11 @@ use log::{info, error};
 use simplelog::{CombinedLogger, WriteLogger, TermLogger, Config, LevelFilter, TerminalMode, ColorChoice};
 use std::fs::OpenOptions;
 use std::path::PathBuf;
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Manager,
+};
 
 fn get_log_dir() -> PathBuf {
     let path = if cfg!(target_os = "windows") {
@@ -68,9 +73,64 @@ pub fn run() {
     }));
 
     tauri::Builder::default()
-        .setup(|_app| {
+        .setup(|app| {
             init_logging();
+
+            // 创建系统托盘菜单
+            let show_item = MenuItem::with_id(app, "show", "显示 PasswordCat", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+
+            // 创建系统托盘
+            let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app: &tauri::AppHandle, event| match event.id.as_ref() {
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    "quit" => {
+                        info!("User clicked quit from tray");
+                        app.exit(0);
+                    }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray: &tauri::tray::TrayIcon<tauri::Wry>, event| {
+                    // 左键点击托盘图标时显示窗口
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                        }
+                    }
+                })
+                .build(app)?;
+
+            info!("System tray created");
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // macOS：点击关闭按钮时隐藏窗口而不退出
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                #[cfg(target_os = "macos")]
+                {
+                    info!("Window close requested, hiding instead of quitting");
+                    let _ = window.hide();
+                    api.prevent_close();
+                }
+            }
         })
         .invoke_handler(tauri::generate_handler![
             crypto::derive_key,
