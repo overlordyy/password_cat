@@ -4,7 +4,6 @@
     <div class="tool-header">
       <div class="header-left">
         <span class="tool-title">JWT 工具</span>
-        <el-tag size="small" type="info">离线处理 · 数据不离本机</el-tag>
       </div>
       <div class="header-right">
         <el-radio-group v-model="mode" size="small">
@@ -24,7 +23,7 @@
         <el-input
           v-model="jwtInput"
           type="textarea"
-          :rows="6"
+          :rows="14"
           placeholder="粘贴 JWT Token..."
           class="jwt-textarea"
           @input="onJwtInput"
@@ -211,7 +210,7 @@
           <el-input
             v-model="verifyToken"
             type="textarea"
-            :rows="5"
+            :rows="10"
             placeholder="粘贴要验证的 JWT Token..."
             class="code-input"
           />

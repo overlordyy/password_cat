@@ -27,7 +27,7 @@
     }
   },
   "productName": "PasswordCat",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "identifier": "com.passwordcat.app",
   "plugins": {
     "shell": {
