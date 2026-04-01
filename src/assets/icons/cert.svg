@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <!-- 证书纸张 -->
+  <rect x="2" y="1" width="9" height="12" fill="#e8e8e8" rx="1"/>
+  <rect x="3" y="1" width="7" height="1" fill="#ccc"/>
+  <!-- 折角 -->
+  <polygon points="8,1 11,1 11,4" fill="#bbb"/>
+  <rect x="8" y="1" width="3" height="3" fill="#ddd"/>
+  <!-- 文字线条 -->
+  <rect x="3" y="5" width="5" height="1" fill="#aaa"/>
+  <rect x="3" y="7" width="6" height="1" fill="#aaa"/>
+  <rect x="3" y="9" width="4" height="1" fill="#aaa"/>
+  <!-- 印章/徽章 -->
+  <circle cx="12" cy="12" r="3" fill="#f0b429"/>
+  <circle cx="12" cy="12" r="2" fill="#f7c948" stroke="#e09d00" stroke-width="0.5"/>
+  <rect x="11" y="11" width="2" height="2" fill="#a07000"/>
+</svg>

@@ -95,6 +95,14 @@
           <img src="@/assets/icons/hash.svg" class="nav-pixel-icon" />
           <span class="nav-label">哈希计算</span>
         </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'cert' }"
+          @click="activeTab = 'cert'"
+        >
+          <img src="@/assets/icons/cert.svg" class="nav-pixel-icon" />
+          <span class="nav-label">证书解码</span>
+        </div>
       </div>
 
       <!-- 右侧内容区 -->
@@ -107,6 +115,7 @@
         <div v-else-if="activeTab === 'base64'" class="tool-view"><Base64Tool /></div>
         <div v-else-if="activeTab === 'timestamp'" class="tool-view"><TimestampTool /></div>
         <div v-else-if="activeTab === 'hash'" class="tool-view"><HashTool /></div>
+        <div v-else-if="activeTab === 'cert'" class="tool-view"><CertDecoder /></div>
 
         <!-- 密码 / 服务器：左 sidebar + 右列表 -->
         <template v-else>
@@ -530,13 +539,14 @@ import Base64Tool from '@/components/Base64Tool.vue'
 import TimestampTool from '@/components/TimestampTool.vue'
 import HashTool from '@/components/HashTool.vue'
 import SqlFormatter from '@/components/SqlFormatter.vue'
+import CertDecoder from '@/components/CertDecoder.vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 const themeStore = useThemeStore()
 
 // Tab state
-const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash' | 'sql'>('passwords')
+const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash' | 'sql' | 'cert'>('passwords')
 
 // Password state
 const searchQuery = ref('')

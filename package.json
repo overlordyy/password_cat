@@ -1,6 +1,6 @@
 {
   "name": "password_cat",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "A local-first password manager",
   "type": "module",
   "scripts": {
@@ -14,9 +14,12 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "@tauri-apps/api": "^2.10.1",
+    "asn1js": "^3.0.7",
     "diff": "^8.0.4",
     "element-plus": "^2.5.0",
     "pinia": "^2.1.7",
+    "pkijs": "^3.4.0",
+    "pvutils": "^1.1.5",
     "sql-formatter": "^15.7.2",
     "vue": "^3.4.0",
     "vue-router": "^4.2.5"
