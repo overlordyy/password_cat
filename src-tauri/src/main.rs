@@ -142,8 +142,22 @@ pub fn run() {
             storage::vault_exists,
             storage::get_log_path,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            // macOS：点击 Dock 图标时重新显示窗口
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { has_visible_windows, .. } = event {
+                if !has_visible_windows {
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
+                        info!("Dock icon clicked, showing window");
+                    }
+                }
+            }
+        });
 }
 
 mod crypto {
