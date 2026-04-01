@@ -82,8 +82,10 @@ pub fn run() {
             let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
 
             // 创建系统托盘
+            // 使用白色轮廓模板图标，macOS 菜单栏自动适配亮/暗色
             let _tray = TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(tauri::include_image!("icons/tray-icon.png"))
+                .icon_as_template(true)
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app: &tauri::AppHandle, event| match event.id.as_ref() {
