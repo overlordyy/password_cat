@@ -182,6 +182,9 @@ import { ref, computed, reactive } from 'vue'
 import { format as sqlFormat } from 'sql-formatter'
 import { ElMessage } from 'element-plus'
 import { MagicStick, DocumentCopy, Download, QuestionFilled, CircleClose } from '@element-plus/icons-vue'
+import { useHistoryStore } from '@/stores/history'
+
+const historyStore = useHistoryStore()
 
 // ── 状态 ──
 const sqlInput = ref('')
@@ -335,6 +338,12 @@ const format = () => {
     })
 
     errorMsg.value = ''
+    // 记录历史
+    historyStore.addRecord('sql', {
+      title: `SQL：${sql.slice(0, 50).replace(/\s+/g, ' ')}`,
+      summary: result.value.slice(0, 80).replace(/\s+/g, ' '),
+      data: { '原始SQL': sql, '格式化结果': result.value },
+    })
   } catch (e) {
     errorMsg.value = `格式化失败：${(e as Error).message}`
     result.value = ''

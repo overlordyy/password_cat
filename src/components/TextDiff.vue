@@ -149,6 +149,9 @@ import { ref, computed } from 'vue'
 import * as Diff from 'diff'
 import { ElMessage } from 'element-plus'
 import { Upload, Search, DocumentCopy } from '@element-plus/icons-vue'
+import { useHistoryStore } from '@/stores/history'
+
+const historyStore = useHistoryStore()
 
 const leftText = ref('')
 const rightText = ref('')
@@ -299,6 +302,19 @@ const runDiff = () => {
 
   sidePairs.value = pairs
   hasCompared.value = true
+
+  // 记录历史
+  if (leftText.value.trim() || rightText.value.trim()) {
+    historyStore.addRecord('diff', {
+      title: `对比：${leftText.value.slice(0, 30).replace(/\n/g, '↵')}...`,
+      summary: `新增 ${addedCount.value} 行 / 删除 ${removedCount.value} 行`,
+      data: {
+        '原始文本': leftText.value,
+        '对比文本': rightText.value,
+        '差异统计': `新增 ${addedCount.value} 行，删除 ${removedCount.value} 行，相同 ${unchangedCount.value} 行`,
+      },
+    })
+  }
 }
 
 const clearLeft  = () => { leftText.value = '';  reset() }

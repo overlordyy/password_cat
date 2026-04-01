@@ -270,6 +270,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useHistoryStore } from '@/stores/history'
+
+const historyStore = useHistoryStore()
 
 // ---- 模式 ----
 const mode = ref<'decode' | 'encode' | 'verify'>('decode')
@@ -357,6 +360,17 @@ function onJwtInput() {
     const header = JSON.parse(base64UrlDecode(parts[0]))
     const payload = JSON.parse(base64UrlDecode(parts[1]))
     decoded.value = { header, payload, signature: parts[2] }
+    // 记录解码历史
+    historyStore.addRecord('jwt', {
+      title: `解码：${jwtInput.value.slice(0, 40)}...`,
+      summary: `alg: ${header.alg || '-'}${payload.sub ? ' · sub: ' + payload.sub : ''}`,
+      data: {
+        '操作': 'JWT 解码',
+        'Token': jwtInput.value,
+        'Header': JSON.stringify(header, null, 2),
+        'Payload': JSON.stringify(payload, null, 2),
+      },
+    })
   } catch (e: any) {
     decodeError.value = `解码失败：${e?.message || '格式错误'}`
   }
@@ -441,6 +455,17 @@ async function encodeJwt() {
   }
 
   encodedToken.value = `${unsigned}.${sig}`
+  // 记录编码历史
+  historyStore.addRecord('jwt', {
+    title: `编码：${encodeAlg.value} · ${encodePayload.value.slice(0, 40).replace(/\s+/g, ' ')}`,
+    summary: `${encodedToken.value.slice(0, 60)}...`,
+    data: {
+      '操作': 'JWT 编码',
+      '算法': encodeAlg.value,
+      'Payload': encodePayload.value,
+      '生成Token': encodedToken.value,
+    },
+  })
 }
 
 const tokenParts = computed(() => {

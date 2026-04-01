@@ -159,6 +159,9 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import * as asn1js from 'asn1js'
 import { Certificate } from 'pkijs'
+import { useHistoryStore } from '@/stores/history'
+
+const historyStore = useHistoryStore()
 
 // ---- 状态 ----
 const pemInput = ref('')
@@ -579,6 +582,24 @@ async function parseCert() {
     if (!derBuf) throw new Error('无法获取证书数据')
 
     certInfo.value = await parseDerBuffer(derBuf)
+    // 记录历史
+    if (certInfo.value) {
+      const ci = certInfo.value
+      const subjectItem = ci.groups[0]?.items[0]?.value || ''
+      historyStore.addRecord('cert', {
+        title: `证书：${subjectItem.slice(0, 50)}`,
+        summary: `${ci.certType} · ${ci.isGM ? '国密SM2' : '国际标准'} · ${ci.isExpired ? '已过期' : '有效'}`,
+        data: {
+          '主体': subjectItem,
+          '颁发者': ci.groups[1]?.items[0]?.value || '',
+          '类型': ci.certType,
+          '算法': ci.groups[3]?.items?.find(i => i.label === '签名算法')?.value || '',
+          'SHA-256指纹': ci.fingerprints.find(f => f.algo === 'SHA-256')?.value || '',
+          'SHA-1指纹': ci.fingerprints.find(f => f.algo === 'SHA-1')?.value || '',
+          '有效期': `${ci.groups[2]?.items[0]?.value} ~ ${ci.groups[2]?.items[1]?.value}`,
+        },
+      })
+    }
   } catch (e: any) {
     parseError.value = `解析失败: ${e?.message || String(e)}`
   } finally {

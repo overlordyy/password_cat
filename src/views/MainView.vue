@@ -26,8 +26,7 @@
 
       <!-- 左侧导航栏 -->
       <div class="nav-sidebar">
-        <div class="nav-group-title">管理</div>
-        <div
+        <div class="nav-group-title">管理</div>        <div
           class="nav-item"
           :class="{ active: activeTab === 'passwords' }"
           @click="activeTab = 'passwords'"
@@ -110,6 +109,13 @@
         >
           <img src="@/assets/icons/jwt.svg" class="nav-pixel-icon" />
           <span class="nav-label">JWT 工具</span>
+        </div>
+
+        <!-- 历史记录按钮（左下角） -->
+        <div class="nav-history-btn" @click="showHistory = true">
+          <span class="nav-history-icon">📋</span>
+          <span class="nav-label">历史记录</span>
+          <span v-if="historyTotal > 0" class="history-badge">{{ historyTotal }}</span>
         </div>
       </div>
 
@@ -532,6 +538,9 @@
         <el-button type="primary" @click="handleAddServerGroup">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 历史记录面板 -->
+    <HistoryPanel v-model="showHistory" />
   </div>
 </template>
 
@@ -550,10 +559,17 @@ import HashTool from '@/components/HashTool.vue'
 import SqlFormatter from '@/components/SqlFormatter.vue'
 import CertDecoder from '@/components/CertDecoder.vue'
 import JwtTool from '@/components/JwtTool.vue'
+import HistoryPanel from '@/components/HistoryPanel.vue'
+import { useHistoryStore } from '@/stores/history'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 const themeStore = useThemeStore()
+const historyStore = useHistoryStore()
+
+// 历史记录
+const showHistory = ref(false)
+const historyTotal = computed(() => historyStore.totalCount())
 
 // Tab state
 const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash' | 'sql' | 'cert' | 'jwt'>('passwords')
@@ -1031,6 +1047,48 @@ const formatDate = (date: string | number) => {
   image-rendering: pixelated;
 }
 .nav-label { font-size: 12px; white-space: nowrap; }
+
+/* 历史记录按钮 */
+.nav-history-btn {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s;
+  color: rgba(255,255,255,0.55);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 10px;
+  margin-top: 8px;
+  position: relative;
+
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.9);
+  }
+}
+
+.nav-history-icon { font-size: 14px; flex-shrink: 0; }
+
+.history-badge {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #667eea;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
 
 /* ── 右侧内容区 ── */
 .main-content {

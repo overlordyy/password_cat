@@ -119,6 +119,9 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Upload, DocumentCopy } from '@element-plus/icons-vue'
+import { useHistoryStore } from '@/stores/history'
+
+const historyStore = useHistoryStore()
 
 const inputText = ref('')
 const inputType = ref<'text' | 'file'>('text')
@@ -281,6 +284,20 @@ const compute = async () => {
     hashResults.value.forEach(h => {
       h.value = outputCase.value === 'upper' ? (vals[h.algo] || '').toUpperCase() : (vals[h.algo] || '').toLowerCase()
       h.computing = false
+    })
+    // 记录历史
+    const label = inputType.value === 'text' ? inputText.value.slice(0, 40) : fileName.value
+    historyStore.addRecord('hash', {
+      title: `哈希：${label}`,
+      summary: `SHA-256: ${vals['SHA-256'].slice(0, 16)}...`,
+      data: {
+        '输入': inputType.value === 'text' ? inputText.value.slice(0, 500) : `文件: ${fileName.value} (${fileSize.value})`,
+        'MD5': vals['MD5'],
+        'SHA-1': vals['SHA-1'],
+        'SHA-256': vals['SHA-256'],
+        'SHA-384': vals['SHA-384'],
+        'SHA-512': vals['SHA-512'],
+      },
     })
   } catch (e) {
     ElMessage.error('计算失败：' + (e as Error).message)

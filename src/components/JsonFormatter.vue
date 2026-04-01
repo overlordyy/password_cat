@@ -101,6 +101,9 @@
 import { ref, computed, defineComponent, h, type VNode } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Upload, DocumentCopy, Download, MagicStick, CircleClose } from '@element-plus/icons-vue'
+import { useHistoryStore } from '@/stores/history'
+
+const historyStore = useHistoryStore()
 
 // ── 状态 ──
 const inputText = ref('')
@@ -125,6 +128,12 @@ const format = () => {
     const indent = indentSize.value === 'tab' ? '\t' : indentSize.value
     outputText.value = JSON.stringify(parsed, null, indent)
     errorMsg.value = ''
+    // 记录历史
+    historyStore.addRecord('json', {
+      title: `格式化：${inputText.value.slice(0, 40).replace(/\s+/g, ' ')}`,
+      summary: outputText.value.slice(0, 80).replace(/\s+/g, ' '),
+      data: { '输入': inputText.value, '格式化结果': outputText.value },
+    })
   } catch (e: unknown) {
     errorMsg.value = (e as Error).message
     parsedData.value = null

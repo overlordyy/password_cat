@@ -83,6 +83,9 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Upload, DocumentCopy, Download } from '@element-plus/icons-vue'
+import { useHistoryStore } from '@/stores/history'
+
+const historyStore = useHistoryStore()
 
 const inputText = ref('')
 const outputText = ref('')
@@ -111,6 +114,16 @@ const convert = () => {
       while (input.length % 4) input += '='
       outputText.value = decodeURIComponent(escape(atob(input)))
     }
+    // 记录历史
+    historyStore.addRecord('base64', {
+      title: `${mode.value === 'encode' ? '编码' : '解码'}：${inputText.value.slice(0, 40)}`,
+      summary: outputText.value.slice(0, 60),
+      data: {
+        '操作': mode.value === 'encode' ? 'Base64 编码' : 'Base64 解码',
+        '输入': inputText.value.slice(0, 500),
+        '输出': outputText.value.slice(0, 500),
+      },
+    })
   } catch (e) {
     errorMsg.value = `${mode.value === 'encode' ? '编码' : '解码'}失败：${(e as Error).message}`
     outputText.value = ''
