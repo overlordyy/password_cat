@@ -110,6 +110,14 @@
           <img src="@/assets/icons/jwt.svg" class="nav-pixel-icon" />
           <span class="nav-label">JWT 工具</span>
         </div>
+        <div
+          class="nav-item"
+          :class="{ active: activeTab === 'regex' }"
+          @click="activeTab = 'regex'"
+        >
+          <img src="@/assets/icons/regex.svg" class="nav-pixel-icon" />
+          <span class="nav-label">正则解析</span>
+        </div>
 
         <!-- 历史记录按钮（左下角） -->
         <div class="nav-history-btn" @click="showHistory = true">
@@ -131,6 +139,7 @@
         <div v-else-if="activeTab === 'hash'" class="tool-view"><HashTool /></div>
         <div v-else-if="activeTab === 'cert'" class="tool-view"><CertDecoder /></div>
         <div v-else-if="activeTab === 'jwt'" class="tool-view"><JwtTool /></div>
+        <div v-else-if="activeTab === 'regex'" class="tool-view"><RegexTool /></div>
 
         <!-- 密码 / 服务器：左 sidebar + 右列表 -->
         <template v-else>
@@ -559,6 +568,7 @@ import HashTool from '@/components/HashTool.vue'
 import SqlFormatter from '@/components/SqlFormatter.vue'
 import CertDecoder from '@/components/CertDecoder.vue'
 import JwtTool from '@/components/JwtTool.vue'
+import RegexTool from '@/components/RegexTool.vue'
 import HistoryPanel from '@/components/HistoryPanel.vue'
 import { useHistoryStore } from '@/stores/history'
 
@@ -572,7 +582,7 @@ const showHistory = ref(false)
 const historyTotal = computed(() => historyStore.totalCount())
 
 // Tab state
-const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash' | 'sql' | 'cert' | 'jwt'>('passwords')
+const activeTab = ref<'passwords' | 'servers' | 'diff' | 'json' | 'base64' | 'timestamp' | 'hash' | 'sql' | 'cert' | 'jwt' | 'regex'>('passwords')
 
 // Password state
 const searchQuery = ref('')
